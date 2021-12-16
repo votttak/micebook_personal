@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Experiment choice for Mouse {{ mouse.irats_id }}{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+
+  <div>
+
+ 
+    {% for experiment in experiments %}
+    <article class="mouse">
+    <h1>{{experiment.name}}, <span style="color: rgb(5, 36, 34)">{{experiment.project}} Project</span></h1>
+    <div>
+      <span>
+      {% for action_group in experiment.actions %}
+        {% for action in action_group %}
+          {% if loop.last %}
+            {{action}}
+          {% else %}
+            {{action}},
+          {% endif %}
+        {% endfor %}
+        {% if not loop.last %}
+          &#x2192;
+        {% endif %}
+      {% endfor %}
+      </span>
+    </div>
+    <form method="POST" id="{{experiment.id}}">
+      <div>
+        <input style="float: right;" type="submit" value="Choose Experiment" onclick="choose('{{experiment.id}}')">
+    </div>
+    </form>
+
+    </article>
+    {% endfor %}
+    <div>
+      <a class="action" href="{{ url_for('experiments.design_experiment', id=mouse.id) }}">Design new Experiment</a>
+    </div>
+    <script>
+      function choose(id) {
+        var form = "#"+id;
+         $("<input />").attr("type", "hidden")
+               .attr("name", "experiment")
+               .attr("value", id)
+               .appendTo(form);
+       };
+     </script>
+
+  </div>
+{% endblock %}

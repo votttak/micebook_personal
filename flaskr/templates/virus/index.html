@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="POST">
+    <div>
+    <input type="text" name="virus_index_name" id="virus" required type="text" value="" placeholder="Search Virus Name">
+    <input type="submit" value="Search">
+    </div>
+  </form>
+
+
+    <div>
+    <!-- aisi: "virus" is the folder BUT in the folder there is no "add_virus" file, probably meant "new_virus"??? -->
+    <form action="{{ url_for('virus.add_virus') }}" >
+        <input class="test" type="submit" value="Add new Virus">
+        </form>
+    </div> 
+
+  <table id="data">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Container</th>
+        <th>Producer</th>
+        <th>Serotype</th>
+        <th>Promoter</th>
+        <th>Dependency</th>
+        <th>Expressing protein</th>
+        <th>Fluorophob</th>
+        <th>Titer</th>
+        <th>Dilution</th>
+        <th>Construct</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for virus in virus_list %}
+        <tr>
+          <td><a href="{{ url_for('virus.virus_update', virus_id=virus.id) }}">{{ virus.name}}</a></td>
+          <td>{{ virus.container }}</td>
+          <td>{{ virus.producer }}</td>
+          <td>{{ virus.serotype }}</td>
+          <td>{{ virus.promoter }}</td>
+          <td>{{ virus.dependency }}</td>
+          <td>{{ virus.expressing_protein }}</td>
+          <td>{{ virus.fluorophob }}</td>
+          <td>{{ virus.titer }}</td>
+          <td>{{ virus.dilution }}</td>
+          <td>{{ virus.construct }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+  $(document).ready(function () {
+    var HeightDiv = $("div").height();
+    var HeightTable = $("table").height();
+    if (HeightTable > HeightDiv) {
+        var FontSizeTable = parseInt($("table").css("font-size"), 10);
+        while (HeightTable > HeightDiv && FontSizeTable > 10) {
+            FontSizeTable--;
+            $("table").css("font-size", FontSizeTable);
+            HeightTable = $("table").height();
+        }
+    }
+    });
+    </script>
+
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}  {{ page_name }} for Mouse {{ mouse.irats_id }} {% endblock %}</h1>
+  {% if last_action %}
+  <p type="time">{{ last_action }} happened {{moment(time).fromTime(now)}}</p>
+  {% endif %}
+  {% if weight_target %}
+  <p type="text">90% Weight Target is {{ weight_target }} grams</p>
+  {% endif %}
+  {% if last_weight %}
+  <p type="text">Last weight was {{ last_weight[0] }} grams = {{ last_weight[1] }} weight</p>
+  {% endif %}
+{% endblock %}
+
+
+{% block content %}
+  <form method="post" id="entries" class="forms">
+    <div id="left">
+      {% for form in forms %}
+        {% if form['type'] == "bool" %}
+          <div> 
+          <label for="{{form['id']}}">{{form['name']}}:</label> 
+          </div>
+          <div class="radio">
+            <div class="radio">
+            <label for="yes">Yes</label>   
+            <input type="radio" id="yes" name="{{form['id']}}" value="True" checked>
+            </div>
+            <div class="radio">
+            <label for="no">No</label>   
+            <input type="radio" id="no" name="{{form['id']}}" value="False">
+            </div> 
+          </div>
+      {% elif form['type'] == "range" %}
+        <div>
+          <label for="{{form['id']}}">{{form['name']}}</label>
+          <input class="slider" type="{{form['type']}}" min="{{form['min']}}" max="{{form['max']}}" name="{{form['id']}}" id="{{form['id']}}" value="">
+          <p>Expression quality: <span id="value"></span></p>
+        </div>
+        <script>
+          var slider = document.getElementById("{{form['id']}}");
+          var output = document.getElementById("value");
+          output.innerHTML = slider.value; // Display the default slider value
+        
+          // Update the current slider value (each time you drag the slider handle)
+          slider.oninput = function() {
+            output.innerHTML = this.value;
+          }
+         </script>
+      {% else %}
+        {% if 'not_required' in form %}
+        <div>
+          <label for="{{form['id']}}">{{form['name']}}</label>
+          <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="">
+        </div>
+        {% else %}
+          <div>
+            <label for="{{form['id']}}">{{form['name']}}</label>
+            <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="" required>
+          </div>
+        {% endif %}
+      {% endif %}
+      {% endfor %}
+      {% if comment_required %}
+      <div>
+        <label for="comment">Comment</label>
+        <textarea name="comment" id="comment" value="" required></textarea>
+      </div>
+      {% else %}
+      <div>
+        <label for="comment">Comment</label>
+        <textarea name="comment" id="comment" value=""></textarea>
+      </div>
+      {% endif %}
+    <input type="submit" value="Save & Back to Index" onclick="index()">
+    <input type="submit" value="Save & Next Action" onclick="next()">
+    </div>
+  </form>
+  <div>
+    <img src="{{ '/static/Score_table.PNG' }}" alt="Score Table" />
+    </div>
+    {% if not not_euthanasia %}
+    <div>
+    <form action="{{ url_for('experiments.euthanasia', id=mouse['id']) }}" >
+      <input class="red" type="submit" value="Euthanize">
+    </form>  
+    </div>
+    {% else %}
+    <div>
+      <form action="{{ url_for('experiments.start_experiment', id=mouse['id']) }}" >
+        <input class="green" type="submit" value="Go Back">
+      </form>  
+      </div>    
+    {% endif %}
+{% endblock %}
+
+
+<!-- <script>
+  function back() {
+     $("<input />").attr("type", "hidden")
+           .attr("name", "direction")
+           .attr("value", "back")
+           .appendTo("#entries");
+   };
+ </script>
+ <script>
+   function next() {
+      $("<input />").attr("type", "hidden")
+            .attr("name", "direction")
+            .attr("value", "next")
+            .appendTo("#entries");
+    };
+  </script> -->

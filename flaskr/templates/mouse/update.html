@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit Mouse {{ mouse['id'] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="cage">Cage Number</label>
+    <input name="cage" id="cage" 
+        value="{{ request.form['cage'] or mouse.cage}}" required>
+    <label for="license">License</label>
+    <input name="license" id="license" value="{{ request.form['license'] or mouse.license}}" required>
+    <input type="submit" value="Save">
+  </form>
+  <hr>
+  <form action="{{ url_for('mouse.delete', id=mouse.id) }}" method="post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+{% endblock %}

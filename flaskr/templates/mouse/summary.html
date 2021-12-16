@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Procedures summary for Mouse {{ mouse['irats_id'] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {% for procedure in procedures %}
+        <b>{{procedure['name']}}</b>
+        {% for step in procedure['steps'] %}
+            <ul>
+            <li><u>{{step['name']}}</u>, by {{step['user']}}
+            <ul> 
+            {% if step['comment'] %}
+                <li>Comment: {{step['comment']}}
+            {% endif %}
+            {% for entry in step['entries'] %}
+                {% if entry['name']=="Score" %}
+                <li><b>{{entry['name']}}: {{entry['content']}}</b>
+                {% else %}
+                <li>{{entry['name']}}: {{entry['content']}}
+                {% endif %}
+            {% endfor %} 
+            </ul>
+            </ul>
+        {% endfor %} 
+    <br>
+    {% endfor %} 
+{% endblock %}

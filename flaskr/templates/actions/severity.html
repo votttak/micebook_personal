@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Severity Update{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+
+    <div>
+        <p>Select new severity level if needed.</p>
+    </div>
+    <div>
+    <form method="POST">
+        <h3>
+        <label for="severity">Severity</label>
+        <select name="severity" id="severity", type='text'>
+        {% for severity in severity_status %}
+            {% if severity == current_severity %}
+                <option value="{{severity}}" selected>{{severity}}</option>
+            {% else %}
+                <option value="{{severity}}">{{severity}}</option>
+            {% endif %}
+        {% endfor %}
+        </select>
+        </h3>
+        <div>
+        <input type="submit" value="Save and update Irats (might take a minute).">
+        </div>
+    </form>
+    </div>
+{% endblock %}

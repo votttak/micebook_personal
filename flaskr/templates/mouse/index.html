@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Mice{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+
+  <div>
+    
+    
+  <form method="POST">
+    <div>
+    <input type="text" name="irats_id" id="autocomplete1" required type="text" value="" placeholder="Search Mouse ID">
+    <input type="submit" value="Search by Mouse">
+    </div>
+  </form>
+
+
+  <form method="POST">
+    <div>
+    <input type="text" name="cage" id="autocomplete2" required type="text" value="" placeholder="Search Cage Number">
+    <input type="submit" value="Search by Cage">
+  </div>
+  </form>  
+ 
+  <div>
+    <form action="{{ url_for('mouse.reload') }}" >
+      <input type="submit" value="Reload Mice from Irats (might take a few minutes)">
+    </form> 
+  </div>
+
+    <script>
+     $('#autocomplete1').autocomplete({
+      serviceUrl: '/search/id',
+      dataType: 'json',
+      onSearchComplete: function (query, suggestions) {
+        console.log(query);
+      }
+      });
+    </script>
+        <script>
+          $('#autocomplete2').autocomplete({
+           serviceUrl: '/search/cage',
+           dataType: 'json',
+           onSearchComplete: function (query, suggestions) {
+             console.log(query);
+           }
+           });
+         </script>
+  </div>
+
+  {% for mouse in todo_mice %}
+  <article class="mouse">
+    <header>
+      <div>
+        <h1>Mouse {{ mouse['irats_id'] }} in cage {{ mouse['cage']}} needs <span style="color: black">{{ mouse['next_step']}}</span> <span style="{{mouse['color']}}">{{mouse['next_operation']}}</span>
+          <p style="float: right; color: rgb(4, 133, 126)" type="time">{{mouse['action']}}</p>
+        </h1>
+        <br>
+        <div>
+          <a style="float: right;" class="action" href="{{ url_for('experiments.start_experiment', id=mouse['mouse_id']) }}">Continue Experiment</a> 
+          <a style="float: right;" class="action" href="{{ url_for('experiments.select_next_procedure', id=mouse['mouse_id'], procedure_name='Scoring') }}">Score</a>
+          <a style="float: right;" class="action" href="{{ url_for('experiments.select_next_procedure', id=mouse['mouse_id'], procedure_name='Scoring') }}">Handle</a>
+          <a style="float: right;" class="action" href="{{ url_for('mouse.mouse_summary', id=mouse['mouse_id']) }}">Summary</a>
+        </div>
+        </div>
+    </header> 
+    <div>
+    <p class="licence">Licence {{mouse['licence']}}</br> Investigator {{mouse['investigator']}}</p>
+  </div>
+  </article>
+  <hr>
+  {% endfor %}
+
+  {% for mouse in licenced_mice %}
+  <article class="mouse">
+    <header>
+      <div>
+        <h1>Mouse {{ mouse['irats_id'] }} in cage {{ mouse['cage']}}</span>
+          <p style="float: right; color: rgb(5, 36, 34)">Got attributed a project</p>
+        </h1>
+        <br>
+        <div>
+          <a style="float: right;" class="action" href="{{ url_for('experiments.start_experiment', id=mouse.id) }}">Start Experiment</a> 
+        </div>
+        </div>
+    </header> 
+    <div>
+    <p class="licence">Licence {{mouse['licence']}}</br> Investigator {{mouse['investigator']}}</p>
+  </div>
+  </article>
+  <hr>
+  {% endfor %}
+
+  {% for mouse in euthanized_mice %}
+  <article class="mouse">
+    <header>
+      <div>
+        <h1>Mouse {{ mouse['irats_id'] }} in cage {{ mouse['cage']}}</span>
+          <p style="float: right; color: rgb(5, 36, 34)" type="time">Has been euthanized</p>
+        </h1>
+        <br>
+        <div>
+          <a style="float: right;" class="action" href="{{ url_for('mouse.mouse_summary', id=mouse.id) }}">Summary</a>
+        </div>
+        </div>
+    </header> 
+    <div>
+    <p class="licence">Licence {{mouse['licence']}}</br> Investigator {{mouse['investigator']}}</p>
+  </div>
+  </article>
+  <hr>
+  {% endfor %}
+
+  {% for mouse in all_mice %}
+    <article class="mouse">
+      <header>
+        <div>
+          <h1>Mouse {{ mouse.irats_id }} in cage {{ mouse.cage }}</div>
+        </div>
+        <!-- <a style="float: right;" class="action" href="{{ url_for('experiments.start_experiment', id=mouse.id) }}">Start Experiment</a>  -->
+        <a style="float: right;" class="action" href="{{ url_for('experiments.choose_experiment', id=mouse.id) }}">Choose Experiment</a> 
+      </header>
+      <p class="licence">Licence {{mouse.licence}} </br> Investigator {{mouse['investigator']}}</p>
+    </article>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

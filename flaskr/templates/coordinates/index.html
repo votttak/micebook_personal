@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="POST">
+    <div>
+    <input type="text" name="coordinates_index_name" id="coordinates" required type="text" value="" placeholder="Search Coordinates Name">
+    <input type="submit" value="Search">
+    </div>
+  </form>
+
+
+    <div>
+    <form action="{{ url_for('coordinates.add_coordinates') }}" >
+        <input class="test" type="submit" value="Add new Coordinates">
+        </form>
+    </div> 
+
+  <table id="data">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Region name abbreviated</th>
+        <th>AP</th>
+        <th>ML</th>
+        <th>DV</th>
+        <th>Researcher</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for coordinates in coordinates_list %}
+        <tr>
+          <td><a href="{{ url_for('coordinates.coordinates_update', coordinates_id=coordinates.id) }}">{{ coordinates.name}}</a></td>
+          <td>{{ coordinates.region_name_abbreviated }}</td>
+          <td>{{ coordinates.AP }}</td>
+          <td>{{ coordinates.ML }}</td>
+          <td>{{ coordinates.DV }}</td>
+          <td>{{ coordinates.researcher }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+  $(document).ready(function () {
+    var HeightDiv = $("div").height();
+    var HeightTable = $("table").height();
+    if (HeightTable > HeightDiv) {
+        var FontSizeTable = parseInt($("table").css("font-size"), 10);
+        while (HeightTable > HeightDiv && FontSizeTable > 10) {
+            FontSizeTable--;
+            $("table").css("font-size", FontSizeTable);
+            HeightTable = $("table").height();
+        }
+    }
+    });
+    </script>
+
+{% endblock %}

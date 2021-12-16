@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Add new virus to the database{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    
+    <div>
+    <label for="name">Name</label>
+    <input name="name" id="name" required>
+    </div>
+
+    <div>
+    <label for="container">Container</label>
+    <input name="container" id="container" required>
+    </div>
+    <div>
+    <label for="producer">Producer</label>
+    <input name="producer" id="producer">
+    </div>
+    <div>
+    <label for="promoter">Promoter</label>
+    <input name="promoter" id="promoter">
+    </div>
+    <div>
+    <label for="expressing_protein">Expressing Protein</label>
+    <input name="expressing_protein" id="expressing_protein"  >
+    </div>
+    <div>
+    <label for="dependency">Dependency</label>
+    <input name="dependency" id="dependency" >
+    </div>
+    <div>
+    <label for="serotype">Serotype</label>
+    <input name="serotype" id="serotype" >
+    </div>
+    <div>
+    <label for="fluorophob">Fluorophob</label>
+    <input name="fluorophob" id="fluorophob" >
+    </div>
+    <div>
+    <label for="titer">Titer</label>
+    <input name="titer" id="titer" >
+    </div>
+    <div>
+    <label for="dilution">Dilution</label>
+    <input name="dilution" id="dilution" >
+    </div>
+    <div>
+    <label for="construct">Construct</label>
+    <textarea name="construct" id="construct" required></textarea>
+    </div>
+
+    <input type="submit" value="Save">
+  </form>
+
+{% endblock %}

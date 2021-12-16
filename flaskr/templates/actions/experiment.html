@@ -1,0 +1,884 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %} Mouse {{ mouse.irats_id }}-{{ page_name }}{% endblock %}</h1>
+  <div>
+    
+    {% if last_action %}
+      <p type="time">{{ last_action }} happened {{moment(time).fromTime(now)}}</p>
+    {% endif %}
+    
+    {% if weight_target_message %}
+      <p type="text">{{ weight_target_message }}</p>
+    {% endif %}
+    
+    <!-- {% if last_weight %}
+    <p type="text">Last weight was {{ last_weight[0] }} grams = {{ last_weight[1] }} weight loss</p>
+    {% endif %} -->
+    
+    {% if food_amount %}
+      <p type="text">Total food to introduce is {{food_amount}}g </p>
+    {% endif %} 
+  </div>
+{% endblock %}
+
+
+{% block content %}
+  {% if ad_libitum %}
+    <div>
+      <button id="ad_libitumBtn">Ad Libitum</button>
+
+        <div id="ad_libitumModal" class="modal">
+
+          <div class="modal-content">
+            <h2>Indicate ad_libitum duration</h2>
+            <span id="ad_libitumClose" class=close>&times;</span>
+            <form id="ad_libitum_form" name="ad_libitum" method="post">
+              <div>
+                <label for="ad_libitum_days">Number of ad-libitum days</label>
+                <input type="number" name="ad_libitum_days" id="ad_libitum_days" min=1 required>                
+              </div>
+              <div>
+              <button type="submit" onclick="ad_libitum_index()" >Save & Back to Index</button>
+              <button type="submit" onclick="ad_libitum_next()" >Save & Next Action</button>
+              </div>
+            </form> 
+          </div>
+
+        </div>
+    </div>
+  {% endif %}
+
+  
+
+  <form method="post" id="entries" class="forms"> 
+    <div>
+      <!-- {% if ad_libitum %}
+      <div>
+        <input type="submit" value="Ad libitum" onclick="ad_libitum()" formnovalidate>
+      </div>
+      {% endif %}  -->
+      {% for form in forms %}
+        {% if form['type'] == "bool" %}
+        <div>
+          <div> 
+          <label for="{{form['id']}}">{{form['name']}}:</label> 
+          </div>
+          <div>
+            {% for box in form['choices'] %}
+              {% if box['checked'] %}
+                <div class="radio">
+                  <label for="{{box['id']}}">{{box['name']}}</label>   
+                  <input type="radio" id="{{box['id']}}" name="{{form['id']}}" value="{{box['value']}}" checked>
+                </div>
+              {% else %}
+                <div class="radio">
+                  <label for="{{box['id']}}">{{box['name']}}</label>   
+                  <input type="radio" id="{{box['id']}}" name="{{form['id']}}" value="{{box['value']}}">
+                  
+
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          </div>
+        </div>
+
+        {% if add_virus_btn_required %}
+        <button type="button" id="add-virus-btn"> Add virus </button>
+        <br>
+        <button type="button" id="add-implantation-btn"> Add implantation </button>
+        <br>
+        {% endif %}
+        
+        <div id="left">
+      {% elif form['type'] == "range" %}
+        <div>
+          <label for="{{form['id']}}"> {{form['name']}} </label>
+          <input class="slider" type="{{form['type']}}" min="{{form['min']}}" max="{{form['max']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}">
+          <p>{{form['value_name']}}: <span id="value"> </span> </p>
+        </div>
+        <script>
+          var slider = document.getElementById("{{form['id']}}");
+          var output = document.getElementById("value");
+          output.innerHTML = slider.value; // Display the default slider value
+        
+          // Update the current slider value (each time you drag the slider handle)
+          slider.oninput = function() {
+            output.innerHTML = this.value;
+          };
+         </script>
+      {% elif form['type'] == "checkbox" %}
+      <div>
+        <label>{{form['name']}}:</label>
+        {% for choice in form['choices'] %}
+          {% if choice['checked'] %}
+            <label >{{choice['name']}}</label>
+            <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}" checked>
+          {% else %}
+            <label >{{choice['name']}}</label>
+            <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}">   
+          {% endif %}       
+        {% endfor %}
+      </div>
+      {% elif form['type'] == "multiple" %}
+        <div>
+          {% if 'not_required' in form %}
+            <label>{{form['name']}}:</label>
+            {% for field in form['fields'] %}
+              <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2">
+            {% endfor %}
+          {% else %}
+            <label>{{form['name']}}:</label>
+            {% for field in form['fields'] %}
+              <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2" required>
+            {% endfor %}
+          {% endif %}
+        </div>    
+      {% elif form['type'] == "info" %}
+        <div>
+          <p><b>{{ form['value'] }}</b></p>
+        </div> 
+        
+      <!----- VIRUS BLOCK ----->  
+      <!--
+      {% elif form['type'] == "virus" %}
+        <div id="{{form['block']}}">
+          
+          {% if 'fetch_data' in form %}
+          
+            <div>
+              <label for="{{form['id']}}">{{form['name']}}</label>
+              <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}" min="{{form['min']}}" max="{{form['max']}}" required size="70" placeholder="">
+            </div>
+          
+          {% elif form['secondary_type'] == "multiple" %}  
+
+            <div>
+              {% if 'not_required' in form %}
+                <label>{{form['name']}}:</label>
+                {% for field in form['fields'] %}
+                  <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2">
+                {% endfor %}
+              {% else %}
+                <label>{{form['name']}}:</label>
+                {% for field in form['fields'] %}
+                  <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2" required>
+                {% endfor %}
+              {% endif %}
+            </div>
+
+          {% else %}
+            
+            <div>
+              <label for="{{form['id']}}">{{form['name']}}</label>
+              <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}" min="{{form['min']}}" max="{{form['max']}}" required>
+            </div>
+            
+          {% endif %}
+        
+        </div>
+      -->
+      <!----- VIRUS BLOCK END ------>
+      
+      
+      {% else %}
+
+
+        
+        {% if 'not_required' in form %}
+          <div>
+            <label for="{{form['id']}}">{{form['name']}}</label>
+            <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}" min="{{form['min']}}" max="{{form['max']}}" size ="{{form['size']}}">
+          </div>
+        {% else %}
+          
+          <script>
+            console.log("blabla_1")
+          </script>
+          
+            <div>
+              {% if 'fetch_data' in form %}
+                <div>
+                  <label for="{{form['id']}}">{{form['name']}}</label>
+                  <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}" min="{{form['min']}}" max="{{form['max']}}" required size="70" placeholder="">
+                </div>
+              {% else %}
+                
+                <div>
+                  <label for="{{form['id']}}">{{form['name']}}</label>
+                  <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}" min="{{form['min']}}" max="{{form['max']}}" required>
+                </div>
+                
+              {% endif %}
+            </div>
+          
+          
+        {% endif %}
+        
+        
+      {% endif %}
+
+      
+
+
+      {% endfor %}
+
+
+      
+      <!-- DRAW VIRUSES -->         
+      {% for virus_block in viruses %}
+            <div id="{{virus_block.block_id}}" class="{{virus_block.class_name}}">
+              <br>  
+              {% for virus_input in virus_block.inputs %}
+                  {% if 'fetch_data' in virus_input %}
+                    <div>
+                      <label for="{{virus_input['id']}}">{{virus_input['name']}}</label>
+                      <input type="{{virus_input['type']}}" name="{{virus_input['id']}}" id="{{virus_input['id']}}" value="{{virus_input['value']}}" min="{{virus_input['min']}}" max="{{virus_input['max']}}" size="70" placeholder="">
+                    </div>
+                  {% elif virus_input['secondary_type'] == "multiple" %}  
+                    <div>
+                      {% if 'not_required' in virus_input %}
+                        <label>{{virus_input['name']}}:</label>
+                        {% for field in virus_input['fields'] %}
+                          <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2">
+                        {% endfor %}
+                      {% else %}
+                        <label>{{virus_input['name']}}:</label>
+                        {% for field in virus_input['fields'] %}
+                          <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2" >
+                        {% endfor %}
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <div>
+                      <label for="{{virus_input['id']}}">{{virus_input['name']}}</label>
+                      <input type="{{virus_input['type']}}" name="{{virus_input['id']}}" id="{{virus_input['id']}}" value="{{virus_input['value']}}" min="{{virus_input['min']}}" max="{{virus_input['max']}}" >
+                    </div>
+                  {% endif %}
+              {% endfor %}
+            </div>
+      {% endfor %}  
+      
+      <!-- DRAW IMPLANTATIONS -->      
+      {% for implantation_block in implantations %}
+            <div id="{{implantation_block.block_id}}" class="{{implantation_block.class_name}}">
+              <br>  
+              {% for virus_input in implantation_block.inputs %}
+                  {% if 'fetch_data' in virus_input %}
+                    <div>
+                      <label for="{{virus_input['id']}}">{{virus_input['name']}}</label>
+                      <input type="{{virus_input['type']}}" name="{{virus_input['id']}}" id="{{virus_input['id']}}" value="{{virus_input['value']}}" min="{{virus_input['min']}}" max="{{virus_input['max']}}" size="70" placeholder="">
+                    </div>
+                  {% elif virus_input['secondary_type'] == "multiple" %}  
+                    <div>
+                      {% if 'not_required' in virus_input %}
+                        <label>{{virus_input['name']}}:</label>
+                        {% for field in virus_input['fields'] %}
+                          <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2">
+                        {% endfor %}
+                      {% else %}
+                        <label>{{virus_input['name']}}:</label>
+                        {% for field in virus_input['fields'] %}
+                          <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2" >
+                        {% endfor %}
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <div>
+                      <label for="{{virus_input['id']}}">{{virus_input['name']}}</label>
+                      <input type="{{virus_input['type']}}" name="{{virus_input['id']}}" id="{{virus_input['id']}}" value="{{virus_input['value']}}" min="{{virus_input['min']}}" max="{{virus_input['max']}}" >
+                    </div>
+                  {% endif %}
+              {% endfor %}
+            </div>
+      {% endfor %}
+
+      <div id="viruses_container">
+      </div>
+      
+      <!-- BUTTON CODE "Add virus" -->
+      
+      <script>
+        hideAllViruses(10);
+        let virusesCountShown = 0;
+
+        document.getElementById("add-virus-btn").addEventListener('click', (event) =>  {
+          showVirusById(++virusesCountShown);
+        });
+
+        function hideAllViruses(viruses_count) 
+        {
+          for (var i = 0; i < viruses_count; ++i) 
+          {
+              hideVirusById(i);
+          }
+        }
+
+        function hideVirusById(virusIndex) {
+          document.getElementById(`virus_block${virusIndex}`).style.display = "none"; // block
+        }
+
+        function showVirusById(virusIndex) {
+          document.getElementById(`virus_block${virusIndex}`).style.display = "block";
+        }
+      </script>
+      
+      <!-- BUTTON CODE "Add implantation" -->
+      
+      <script>
+        hideAllImplantations(10);
+        let implantationsCountShown = 0;
+
+        document.getElementById("add-implantation-btn").addEventListener('click', (event) =>  {
+          showImplantationById(++implantationsCountShown);
+        });
+
+        function hideAllImplantations(implantations_count) 
+        {
+          for (var i = 0; i < implantations_count; ++i) 
+          {
+              console.log("hideAllImplantations_1")
+              hideImplantationById(i);
+          }
+        }
+
+        function hideImplantationById(implantationIndex) {
+          document.getElementById(`implantation_block${implantationIndex}`).style.display = "none"; // block
+        }
+
+        function showImplantationById(implantationIndex) {
+          document.getElementById(`implantation_block${implantationIndex}`).style.display = "block";
+        }
+      </script>
+      
+      <!-----------------VIRUS SAMPLE -------------->
+      <!--
+      <div id="virus_sample" style="display: none;">
+        <label for="virus" id="virus_label">Virus_</label>
+        <input type="text" name="virus_" id="virus_input" required>
+        <br>
+        <label for="virus_construct_" id="virus_construct_label">Virus construct_</label>
+        <input type="text" name="virus_construct_" id="virus_construct_input" required>
+        <br>
+        <label for="virus_coordinates_" id="virus_coordinates_label">Virus coordinates_</label>
+        <input type="text" name="virus_coordinates_" id="virus_coordinates_input" required>
+        <br>
+        <label for="virus_" id="virus_volume_label">Virus_volume_</label>
+        <input type="text" name="virus_volume_" id="virus_volume_input" required>
+        <br>
+        <br>
+      </div>
+
+      <script>
+        var virus_sample = document.getElementById("virus_sample");
+        var viruses_container = document.getElementById("viruses_container");
+
+        var viruses_count = 0;
+
+        document.getElementById("add-virus-btn").addEventListener('click', (event) =>  {
+          ++viruses_count;
+          add_element(viruses_count)
+        });
+
+        function add_element(unique_index) 
+        {
+          console.log("virus element added");
+          var virus_copy = virus_sample.cloneNode(true);
+          virus_copy.style.display = "block";
+          viruses_container.appendChild(virus_copy);
+
+          virus_copy.querySelector("#virus_label").innerHTML = virus_copy.querySelector("#virus_label").innerHTML + unique_index;
+          virus_copy.querySelector("#virus_construct_label").innerHTML = virus_copy.querySelector("#virus_construct_label").innerHTML + unique_index;
+          virus_copy.querySelector("#virus_coordinates_label").innerHTML = virus_copy.querySelector("#virus_coordinates_label").innerHTML + unique_index;
+          virus_copy.querySelector("#virus_volume_label").innerHTML = virus_copy.querySelector("#virus_volume_label").innerHTML + unique_index; 
+
+          virus_copy.querySelector("#virus_input").name = virus_copy.querySelector("#virus_input").name + unique_index;
+          virus_copy.querySelector("#virus_construct_input").name = virus_copy.querySelector("#virus_construct_input").name + unique_index;
+          virus_copy.querySelector("#virus_coordinates_input").name = virus_copy.querySelector("#virus_coordinates_input").name + unique_index;
+          virus_copy.querySelector("#virus_volume_input").name = virus_copy.querySelector("#virus_volume_input").name + unique_index;
+        }
+      </script>
+      -->
+      <!-----------------VIRUS SAMPLE -------------->
+      
+      
+      
+      
+      
+      
+      <div>
+        <label for="comment">Comment</label>
+        <textarea name="comment" id="comment">{{comment_value}}</textarea>
+      </div>
+      {% if comment_required %}
+        <script>
+          var com = document.getElementById("comment");
+          com.required = true ;
+        </script> 
+      {% elif food_amount %}
+        <script>
+          var all_food = parseFloat("{{food_amount}}");
+          var food_collected = document.getElementById("food_collected");
+          var food_given = document.getElementById("food_given");
+          var com_food = document.getElementById("comment");
+          var forms = document.getElementById("entries");
+
+
+          window.addEventListener("click", function(event) {
+            food_eaten = parseFloat(food_collected.value) + parseFloat(food_given.value);
+            if ( food_eaten > 0.1 + all_food || food_eaten < all_food - 0.1) {
+              com_food.required = true;
+            } else {
+              com_food.required = false;
+            }
+          });
+
+          // forms.onsubmit = function() {
+          //   food_eaten = parseFloat(food_collected.value) + parseFloat(food_given.value);
+          //   if ( food_eaten > 0.1 + all_food || food_eaten < all_food - 0.1) {
+          //     window.alert("Total amount of food given to animal changed since last session. Please use the comment section to explain why.");
+          //   }           
+            // };
+        </script>
+      {% endif %}
+    {% if no_back %}
+      <input type="submit" value="Save" onclick="index()">
+    {% else %}
+    <div>
+    <input type="submit" value="Save & Back to Index" onclick="index()">
+    <input type="submit" value="Save & Next Action" onclick="next()">
+      {% if skippable %}
+        <input type="submit" value="Skip" onclick="skip()" formnovalidate>
+      {% endif %}
+      {% if enddable %}
+      <div>
+        <input type="submit" value="End experiment" onclick="end()" formnovalidate>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+    <!-- <div>
+      <img src="{{ '/static/Score_table.PNG' }}" alt="Score Table" />
+    </div> -->
+
+    <div id="ScoringModal" class="modal">
+      <div class="modal-content">
+        <div>
+          <!-- <img src="{{ '/static/Score_table.PNG' }}" alt="Score Table" /> -->
+          <h2>Scoring Table</h2>
+          <p>Check all corresponding options and validate your entries at the bottom</p>
+    
+          <table id="Table">
+            <tr>
+              <th>Parameter</th>
+              <th colspan=2>Symptom</th>
+              <th>Score</th>
+            </tr>
+            {% if not scheduling %}
+            <tr>
+              <td rowspan=2> Bodyweight </td>
+              <td rowspan=2>
+                <input type='text' name="Bodyweight (grams)" id="score_weight" value=""></input>
+                <label id="score_weight_label" for="score_weight"></label>
+              </td>
+                <script>
+                  var scheduling = false;
+                  var ref_weight;
+                  var weight_label = document.getElementById("score_weight_label");
+                  $.getJSON("/get_last_weight/{{mouse['id']}}", 
+                    function(json) {
+                      if (json["lastweight"]) {
+                        ref_weight = json["lastweight"];
+                        weight_label.innerHTML = "(grams). Reference weight is "+ ref_weight+"g."
+                      } else {
+                        ref_weight = 0;
+                        weight_label.innerHTML = "(grams)."
+                      }
+                    });
+                  var score_weight = document.getElementById("score_weight");
+                </script>  
+              <td>&#8805; 10% weight loss</td> 
+              <td>3</td>
+              </tr>  
+              <tr>
+                <td>&#8805; 15% weight loss</td> 
+                <td>10</td>
+              </tr>       
+            {% else %}
+            <script>
+              var scheduling = true;
+              var ref_weight;
+              var weight_label = document.getElementById("score_weight_label");
+              $.getJSON("/get_last_weight/{{mouse['id']}}", 
+                function(json) {
+                  if (json["lastweight"]) {
+                    ref_weight = json["lastweight"];
+                  } else {
+                    ref_weight = 0;
+                  }
+                });
+              var score_weight = document.getElementById("{{scheduling}}");
+              var soft_weight_target = "{{soft_weight_target}}";
+              var hard_weight_target = "{{hard_weight_target}}";
+            </script>              
+            {% endif %}
+            <tr>
+              <td rowspan=3>Appearance</td>
+              <td colspan=2>
+                <input type="checkbox" name="Scruffy hair" id="scruffy_hair" value="Scruffy hair">
+                <label >Scruffy hair</label>
+              </td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Unwashed appearance, feces on hair" id="unwashed" value="Unwashed appearance, feces on hair">
+                <label >Unwashed appearance, feces on hair</label>
+              </td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Dehydratation" id="dehydratation" value="Dehydratation">
+                <label >Dehydratation</label>
+              </td>
+              <td>6</td>
+            </tr>
+            <tr>
+              <td>Breathing</td>
+              <td colspan=2>
+                <input type="checkbox" name="Abnormal breathing pattern" id="abnormal_breathing" value="Abnormal breathing pattern">
+                <label>Abnormal breathing pattern</label>
+              </td>
+              <td>6</td>
+            </tr>
+            <tr>
+              <td rowspan=3>Eyes</td>
+              <td colspan=2>
+                <input type="checkbox" name="Retained half closed eyelids" id="half_closed_eyes" value="Retained half closed eyelids">
+                <label>Retained half closed eyelids</label>
+              </td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Retained closed eyelids" id="closed_eyes" value="Retained closed eyelids">
+                <label>Retained closed eyelids</label>
+              </td>
+              <td>6</td>              
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Eyes 'sunk' in the head" id="sunk_eyes" value="Eyes 'sunk' in the head">
+                <label>Eyes 'sunk' in the head</label>
+              </td>
+              <td>6</td>              
+            </tr>
+            <tr>
+              <td rowspan=4>Behavior</td>
+              <td colspan=2>
+                <input type="checkbox" name="Absence of flight responce" id="no_response" value="Absence of flight responce">
+                <label>Absence of flight responce</label>
+              </td>
+              <td>6</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Aggression" id="aggression" value="Aggression">
+                <label>Aggression</label>
+              </td>
+              <td>1</td>              
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Excessive self-grooming" id="grooming" value="Excessive self-grooming">
+                <label>Excessive self-grooming</label>
+              </td>
+              <td>3</td>              
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Self-mutilation or stereotypic behavior" id="mutilation" value="Self-mutilation or stereotypic behavior">
+                <label>Self-mutilation or stereotypic behavior</label>
+              </td>
+              <td>10</td>              
+            </tr>
+            <tr>
+              <td rowspan=2>Posture</td>
+              <td colspan=2>
+                <input type="checkbox" name="Hunched back" id="hunched_back" value="Hunched back">
+                <label>Hunched back</label>
+              </td>
+              <td>6</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Stiff posture" id="stiff_posture" value="Stiff posture">
+                <label>Stiff posture</label>
+              </td>
+              <td>4</td>              
+            </tr>
+            <tr>
+              <td rowspan=2>Locomotion</td>
+              <td colspan=2>
+                <input type="checkbox" name="Careful, incomplete gait" id="careful" value="Careful, incomplete gait">
+                <label>Careful, incomplete gait</label>
+              </td>
+              <td>4</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="No progressive movement" id="no_progressive" value="No progressive movement">
+                <label>No progressive movement</label>
+              </td>
+              <td>4</td>              
+            </tr>
+            <tr>
+              <td rowspan=3>Implantation wound</td>
+              <td colspan=2>
+                <input type="checkbox" name="Major bleeding" id="major_bleeding" value="Major bleeding">
+                <label>Major bleeding</label>
+              </td>
+              <td>10</td>
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Uncomplicated wound opening of the skin without signs of inflammation or infection" id="wound" value="Uncomplicated wound opening of the skin without signs of inflammation or infection">
+                <label>Uncomplicated wound opening of the skin without signs of inflammation or infection</label>
+              </td>
+              <td>1</td>              
+            </tr>
+            <tr>
+              <td colspan=2>
+                <input type="checkbox" name="Opening with signs of inflammation or infection (swelling, exudation, pain)" id="implantation_opening" value="Opening with signs of inflammation or infection (swelling, exudation, pain)">
+                <label>Opening with signs of inflammation or infection (swelling, exudation, pain)</label>
+              </td>
+              <td>10</td>              
+            </tr>
+          </table>
+          <div style="text-align: center;">
+          <p class="confirm" id="scoreclose">Scoring done</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+    ///// TABLE LOADING AND SCORE UPDATE SCRIPT //////
+    var one_symptoms = ["scruffy_hair", "unwashed", "aggression", "wound"];
+    var three_symptoms = ["grooming"];
+    var four_symptoms = ["half_closed_eyes", "stiff_posture", "careful", "no_progressive"];
+    var six_symptoms = ["dehydratation", "abnormal_breathing", "closed_eyes", "sunk_eyes", "no_response", "hunched_back"];
+    var ten_symptoms = ["mutilation", "major_bleeding", "implantation_opening"];
+    var score = 0;
+  
+    var all_symptoms = one_symptoms.concat(three_symptoms, four_symptoms, six_symptoms, ten_symptoms);
+  
+    // Get the modal
+    var table = document.getElementById("ScoringModal");
+  
+    // Get the button that opens the modal
+    var scorebtn = document.getElementById("score");
+  
+    // // Get the <span> elsement that closes the modal
+    var scorespan = table.querySelector("#scoreclose");
+  
+    var com_score = document.getElementById("comment");
+  
+    // When the user clicks on the button, open the modal
+    scorebtn.onclick = function() {
+      table.style.display = "block";
+    };
+  
+    // Reload scoring entries (weight + mouse symptoms) if needed
+
+
+    // When the user clicks on scoring done, close the modal and updates the score
+    scorespan.onclick = function() {
+      var i;
+      score = 0;
+      for (i=0; i< one_symptoms.length; i++) {
+        // window.alert(one_symptoms[i])
+        if (table.querySelector("#"+one_symptoms[i]).checked) {
+          score = score + 1;
+        }
+      }
+      for (i=0; i< three_symptoms.length; i++) {
+        console.log(three_symptoms[i])
+        if (table.querySelector("#"+three_symptoms[i]).checked) {
+          score = score + 3;
+        }
+      }
+      for (i=0; i< four_symptoms.length; i++) {
+        console.log(four_symptoms[i])
+        if (table.querySelector("#"+four_symptoms[i]).checked) {
+          score = score + 4;
+        }
+      }
+      for (i=0; i< six_symptoms.length; i++) {
+        console.log(six_symptoms[i])
+        if (table.querySelector("#"+six_symptoms[i]).checked) {
+          score = score + 6;
+        }
+      }
+      for (i=0; i< ten_symptoms.length; i++) {
+        console.log(ten_symptoms[i])
+        if (table.querySelector("#"+ten_symptoms[i]).checked) {
+          score = score + 10;
+        }
+      }
+      if (!(scheduling) && score_weight) {
+        if (score_weight.value) {
+          if (0.85*ref_weight > parseFloat(score_weight.value)) {
+            score = score + 10;
+          } else if (0.9*ref_weight > parseFloat(score_weight.value)) {
+            score = score + 3;
+          }  
+        }
+      } 
+      if (score>=10) {
+        com_score.required = true;
+        window.alert("This mouse has a score higher or equal to 10: Euthanize it immediately.");
+      } else if (score>=6) {
+        com_score.required = true;
+        window.alert("This mouse has a score between 6 and 9 which is only accepted for 1 day. Please comment the reasons if you want to procede and perfom a scoring the very next day.");
+      } else if (score>=4) {
+        com_score.required = true;
+        window.alert("This mouse has a score between 4 and 5 which is only accepted for 2 days. Please comment the reasons if you want to procede.");
+      } else if (score>0) {
+        com_score.required = true;
+        window.alert("This mouse has a score between 1 and 3 which is only accepted for 7 days. Please comment the reasons if you want to procede.");
+      }
+      scorebtn.value = score;
+      table.style.display = "none";
+    };
+
+    if (scheduling) {
+      score_weight.addEventListener("change", function (event) {
+        if (score_weight.value) {
+          var new_weight = parseFloat(score_weight.value);
+          var loss = String(100-new_weight/ref_weight*100)+'%';
+          if (parseFloat(hard_weight_target) > new_weight) {
+            com_score.required = true;
+            window.alert("Critical Weight loss of "+loss+"! Euthanize mouse if this happens 2 days in a row. Please comment the reasons if you want to procede.");
+          } else if (parseFloat(soft_weight_target) > new_weight) {
+            com_score.required = true;
+            window.alert("Critical Weight loss of "+loss+"! Euthanize mouse if this happens 3 days in a row. Please comment the reasons if you want to procede.");
+          }  
+        }
+      }, false
+      );
+    }
+
+  </script>
+
+  {% if scoring_values %} 
+  <script> 
+  // Reload scoring data from already filled form
+    var values = JSON.parse('{{scoring_values | tojson}}');
+
+    window.onload = function() {
+      for (j=0; j< values.length; j++) {
+        if (values[j]['name']=="Bodyweight (grams)"){
+          score_weight.value = values[j]['value'];
+          break;
+        }
+        for (i=0; i< all_symptoms.length; i++) {
+          var symptom = table.querySelector("#"+all_symptoms[i]);
+          if (values[j]['name']==symptom.name){
+            symptom.checked = true;
+            break;
+          }
+        }
+      }
+    };
+  </script>
+  {% endif %}  
+
+    {% if not not_euthanasia %}
+    <form action="{{ url_for('experiments.select_next_procedure', id=mouse['id'], procedure_name='Euthanasia') }}" >
+      <div>
+        <input type="submit" value="Euthanize">
+      </div>
+    </form>  
+    {% else %}
+      <div>
+        <form action="{{ url_for('experiments.start_experiment', id=mouse['id']) }}" >
+          <input class="green" type="submit" value="Go Back">
+        </form>  
+      </div>    
+    {% endif %}
+
+</div> 
+
+{% if display %}
+  <button id="summary_btn"> 
+    Surgery Summary 
+  </button>
+
+  <div id="SummaryModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="summaryclose">&times;</span>
+      <div style="text-align: center;">
+        <p><strong><u>{{display_title}}:</u></strong></p>
+        {% for info in display %}
+          <div style="text-align: left;">
+            <p><strong>{{info['name']}}:</strong> {{info['value']}}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+
+
+
+
+
+
+
+{% endblock %}
+
+
+
+<!-- <script>
+  function back() {
+     $("<input />").attr("type", "hidden")
+           .attr("name", "direction")
+           .attr("value", "back")
+           .appendTo("#entries");
+   };
+ </script>
+ <script>
+   function next() {
+      $("<input />").attr("type", "hidden")
+            .attr("name", "direction")
+            .attr("value", "next")
+            .appendTo("#entries");
+    };
+  </script> -->

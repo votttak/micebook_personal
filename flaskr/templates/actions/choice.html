@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Choose Next Action for Mouse {{ mouse['irats_id'] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  {% for procedure in procedures %}
+
+        <form action="{{ url_for('experiments.select_next_procedure', id=mouse.id, procedure_name=procedure) }}">
+          <input type="submit" value="{{procedure}}">
+        </form>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+  <button style="float: right;" id="all_proceduresBtn">Choose another action</button>
+    
+    <div id="all_procedures_modal" class="short_modal">
+
+      <div class="modal-content">
+        <span id="all_proceduresClose" class="close">&times;</span>
+          {% for procedure in all_procedures %}
+
+            <form action="{{ url_for('experiments.select_next_procedure', id=mouse.id, procedure_name=procedure) }}">
+              <input type="submit" value="{{procedure}}">
+            </form>
+          {% endfor %}
+      </div>
+
+    </div>
+
+  <script>
+    // Get the modal
+    var action_modal = document.getElementById("all_procedures_modal");
+  
+    // Get the button that opens the modal
+    var ad_btn = document.getElementById("all_proceduresBtn");
+  
+    // Get the <span> element that closes the modal
+    var action_span = document.getElementById("all_proceduresClose");
+  
+    // When the user clicks on the button, open the modal
+    ad_btn.onclick = function() {
+      action_modal.style.display = "block";
+    }
+  
+    // When the user clicks on <span> (x), close the modal
+    action_span.onclick = function() {
+      action_modal.style.display = "none";
+    }
+  
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == action_modal) {
+        action_modal.style.display = "none";
+      }
+    }
+    </script>
+{% endblock %}

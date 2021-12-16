@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Experiment Design{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+
+  <div>
+    <div>
+    <form action="{{ url_for('experiments.reload_licences_and_projects', id=id) }}" >
+      <input type="submit" value="Reload Licences and Projects from Irats (might take a few minutes)">
+    </form> 
+    <!-- <form action="{{ url_for('experiments.reload_projects', id=id) }}" >
+      <input type="submit" value="Reload your own Projects from Irats (might take a few minutes)">
+    </form>  -->
+    </div>
+  <form method="POST">
+    <div>
+    <h3>
+      <label for="name">Experiment name</label>
+      <input type="text" name="name" id="name" value="" required>
+    </h3>
+    <h3>
+      <label for="project">Project</label>
+      <select  name="project" id="project" type="text" value="">
+        {% for project in projects %}
+          <option value="{{project.name}}">{{project.name}}</option>
+        {% endfor %}
+      </select>  
+      <!-- <input list="projects" name="project" id="project" type="text" value="">
+      <datalist id="projects">
+        {% for project in projects %}
+          <option value="{{project.name}}">
+        {% endfor %}
+      </datalist>   -->
+    </h3>
+    </div>
+    <div>
+      <label for="action_1">Action 1</label>
+      <input list="actions" name="action_1" id="action_1" class="actions" type="text" value="">
+    </div>
+    <div id="container"></div>
+    <div>
+      <a href="#" id="add_actions" onclick="addFields()"/>Add action</a>
+      <input type="submit" value="Save experiment"> 
+    </div>
+    <datalist id="actions">
+      {% for action in actions %}
+        <option value="{{action}}">
+      {% endfor %}
+    </datalist>    
+  </form>
+
+  
+
+    <script type='text/javascript'>
+      function addFields(){
+          var container = document.getElementById("container");
+          // Clear previous contents of the container
+          // while (container.hasChildNodes()) {
+          //     container.removeChild(container.lastChild);
+          // }
+          // Append a node with a random text
+          var next_action_id = 1;
+          while(document.getElementById("action_"+next_action_id)){
+            next_action_id++;
+          };
+          // container.appendChild(document.createElement("div"));
+          var label = document.createElement("label");
+          label.for = "action_"+next_action_id;
+          label.innerHTML = "Action "+next_action_id+" ";
+          container.appendChild(label);
+          // container.appendChild(document.createTextNode("Action " + next_action_id));
+          // Create an <input> element, set its type and name attributes
+          var input = document.createElement("input");
+          //input.type = "text";
+          input.name = "action_" + next_action_id;
+          input.id = "action_" + next_action_id;
+          input.setAttribute('list',"actions");
+          input.label = "Action "+next_action_id;
+          container.appendChild(input);
+          // var script = document.createElement("script");
+          // script.innerHTML = "$('#action_"+next_action_id+"').autocomplete({serviceUrl: '/search/action', dataType: 'json',minChars: 0, onSearchComplete: function (query, suggestions) { console.log(query);} });";
+          // container.appendChild(script);
+          container.appendChild(document.createElement("br"));
+      }
+    </script>
+
+  </div>
+{% endblock %}

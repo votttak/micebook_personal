@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Register{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <!-- <label for="full_name">Enter your full name exactly as in Irats_id (as it appears for 'Inverstigator' in animal tables)</label>
+    <input name="full_name" id="full_name" required>
+    <label for="email">Email address (for notifications)</label>
+    <input name="email" id="email" required> -->
+    <h3> Enter your credentials exactly as they appear in irats. No non-irats user is allowed to use Micebook.</h3>
+    <label for="username">Username</label>
+    <input name="username" id="username" required>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+    <input type="submit" value="Register (takes a few minutes to check your credentials)">
+  </form>
+{% endblock %}

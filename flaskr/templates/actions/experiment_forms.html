@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %} {{page_name}} for Mouse {{ mouse['irats_id'] }}{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+  <form method="post" id="entries">
+    {% for form in forms %}
+      {% if form['type'] == "bool" %}
+      <div> 
+      <label for="{{form['id']}}">{{form['name']}}:</label> 
+      </div>
+      <div class="radio">
+        <div class="radio">
+        <label for="yes">Yes</label>   
+        <input type="radio" id="yes" name="{{form['id']}}" value="True" checked>
+        </div>
+        <div class="radio">
+        <label for="no">No</label>   
+        <input type="radio" id="no" name="{{form['id']}}" value="False">
+        </div> 
+      </div>
+    {% else %}
+    {% if 'not_required' in form %}
+    <div>
+      <label for="{{form['id']}}">{{form['name']}}</label>
+      <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="">
+    </div>
+    {% else %}
+      <div>
+        <label for="{{form['id']}}">{{form['name']}}</label>
+        <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="" required>
+      </div>
+    {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if comment_required %}
+  <div>
+    <label for="comment">Comment</label>
+    <textarea name="comment" id="comment" value="" required></textarea>
+  </div>
+  {% else %}
+  <div>
+    <label for="comment">Comment</label>
+    <textarea name="comment" id="comment" value=""></textarea>
+  </div>
+  {% endif %}
+ <div>
+  <input type="submit" value="Save & Back to Index" onclick="index()">
+  <input type="submit" value="Save & Next Action" onclick="next()">
+</div> 
+<div>
+</form>
+<form  action="{{ url_for('experiments.euthanasia', id=mouse['id']) }}" >
+  <input class="red" type="submit" value="Euthanize">
+</form>  
+</div>
+{% endblock %}

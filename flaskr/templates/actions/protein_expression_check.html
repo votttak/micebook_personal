@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %} Protein Expression Check for Mouse {{mouse.id}} {% endblock %}</h1>
+  <p type="time">Protein Expression Check started {{moment(time).fromTime(now)}}</p>
+{% endblock %}
+
+
+{% block content %}
+  <form action="{{ url_for('experiments.protein_expression_check', id=mouse.id, done=True ) }}" >
+    <input class="test" type="submit" value="Protein Expression OK">
+  </form>  
+{% endblock %}

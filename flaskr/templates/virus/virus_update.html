@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit Virus {{ virus['name'] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <div>
+    <label for="name">Name</label>
+    <input name="name" id="name" value="{{ virus.name}}" required>
+    </div>
+    <div>
+    <label for="container">Container</label>
+    <input name="container" id="container" value="{{ virus.container}}" required>
+    </div>
+    <div>
+    <label for="producer">Producer</label>
+    <input name="producer" id="producer" value="{{ virus.producer}}">
+    </div>
+    <div>
+    <label for="promoter">Promoter</label>
+    <input name="promoter" id="promoter" value="{{ virus.promoter}}">
+    </div>
+    <div>
+    <label for="expressing_protein">Expressing Protein</label>
+    <input name="expressing_protein" id="expressing_protein" value="{{ virus.expressing_protein}}" >
+    </div>
+    <div>
+    <label for="dependency">Dependency</label>
+    <input name="dependency" id="dependency" value="{{ virus.dependency}}">
+    </div>
+    <div>
+    <label for="serotype">Serotype</label>
+    <input name="serotype" id="serotype" value="{{ virus.serotype}}">
+    </div>
+    <div>
+    <label for="fluorophob">Fluorophob</label>
+    <input name="fluorophob" id="fluorophob" value="{{ virus.fluorophob}}" >
+    </div>
+    <div>
+    <label for="titer">Titer</label>
+    <input name="titer" id="titer" value="{{ virus.titer}}" >
+    </div>
+    <div>
+    <label for="dilution">Dilution</label>
+    <input name="dilution" id="dilution" value="{{ virus.dilution}}" >
+    </div>
+    <div>
+    <label for="construct">Construct</label>
+    <textarea name="construct" id="construct" required>{{ virus.construct}}</textarea>
+    </div>
+
+
+    <input type="submit" value="Save">
+  </form>
+
+  <form action="{{ url_for('virus.delete', id=virus.id) }}" method="post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+{% endblock %}

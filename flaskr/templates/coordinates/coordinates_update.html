@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit Coordinates {{ coordinates['name'] }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <div>
+      <label for="name">Name</label>
+      <input name="name" id="name" value="{{coordinates.name}}" required>
+      </div>
+      
+      <div>
+      <label for="region_name_abbreviated">Region name abbreviated</label>
+      <input name="region_name_abbreviated" id="region_name_abbreviated" value="{{coordinates.region_name_abbreviated}}" required>
+      </div>
+      
+      <div>
+      <label for="AP">AP</label>
+      <input name="AP" id="AP" value="{{coordinates.AP}}" required>
+      </div>
+  
+      <div>
+      <label for="ML">ML</label>
+      <input name="ML" id="ML" value="{{coordinates.ML}}" required>
+      </div>
+      
+      <div>
+      <label for="DV">DV</label>
+      <input name="DV" id="DV" value="{{coordinates.DV}}" required>
+      </div>
+      
+      <div>
+      <label for="researcher">Researcher</label>
+      <input name="researcher" id="researcher" value="{{coordinates.researcher}}" >
+      </div>
+
+
+    <input type="submit" value="Save">
+  </form>
+
+  <form action="{{ url_for('coordinates.delete', id=coordinates.id) }}" method="post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+{% endblock %}

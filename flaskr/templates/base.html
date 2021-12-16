@@ -1,0 +1,366 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - Micebook</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- <script src="/static/js/moment.min.js"></script> -->
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {{ moment.include_jquery() }}
+  {{ moment.include_moment() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.2.26/jquery.autocomplete.min.js"></script>
+  <ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content ui-autocomplete-custom"></ul>
+</head>
+
+<nav>
+  <h1>Micebook</h1>
+  {% if g.user.admin_rights %}
+  
+  
+  
+  <form action="{{ url_for('coordinates.index') }}" >
+    <input class="test" type="submit" value="Coordinates">
+  </form>
+  
+  <form action="{{ url_for('virus.index') }}" >
+    <input class="test" type="submit" value="Viruses">
+  </form>
+
+  <form action="{{ url_for('mouse.full_index') }}" >
+    <input class="test" type="submit" value="All Mice">
+  </form> 
+
+  {% endif %}
+  <form action="{{ url_for('mouse.index') }}" >
+    <input class="test" type="submit" value="Index">
+  </form> 
+  {% if mouse and step %} 
+    <form  action="{{ url_for('experiments.go_back', id=mouse.id) }}" >
+      <input class="test" type="submit" value="Go back">
+    </form> 
+    <form  action="{{ url_for('experiments.start_experiment', id=mouse.id) }}">
+      <input class="test" type="submit" value="Go to current">
+    </form> 
+  {% endif %}
+
+  <ul>
+    {% if g.user %}
+      <li><span>{{ g.user['username'] }}</span>
+      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+    {% else %}
+      <li><a href="{{ url_for('auth.register') }}">Register</a>
+      <li><a href="{{ url_for('auth.login') }}">Log In</a>
+    {% endif %}
+  </ul>
+</nav>
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+
+  {% block content %}{% endblock %}
+
+  <script>
+    function index() {
+      console.log($("<input />").attr("type", "hidden")
+             .attr("name", "direction")
+             .attr("value", "index")
+             .appendTo("#entries"));
+       $("<input />").attr("type", "hidden")
+             .attr("name", "direction")
+             .attr("value", "index")
+             .appendTo("#entries");
+     };
+   </script>
+   <script>
+     function next() {
+        $("<input />").attr("type", "hidden")
+              .attr("name", "direction")
+              .attr("value", "next")
+              .appendTo("#entries");
+      };
+    </script>
+   <script>
+    function skip() {
+       $("<input />").attr("type", "hidden")
+             .attr("name", "direction")
+             .attr("value", "skip")
+             .appendTo("#entries");
+     };
+   </script>
+   <script>
+    function end() {
+       $("<input />").attr("type", "hidden")
+             .attr("name", "direction")
+             .attr("value", "end")
+             .appendTo("#entries");
+     };
+   </script>
+
+
+  <script>
+    function ad_libitum_index() {
+      var form = document.getElementById("ad_libitum_form");
+      var direction = document.createElement("input");
+      direction.name = "direction";
+      direction.value = "index";
+      direction.type = "hidden";
+      var ad_libitum = document.createElement("input");
+      ad_libitum.name = "Ad Libitum";
+      ad_libitum.value = true;
+      ad_libitum.type = "hidden";
+      form.appendChild(direction);
+      form.appendChild(ad_libitum);
+      // form.submit();
+      };
+   </script>
+
+
+   <script>
+     function ad_libitum_next() {
+      var form = document.getElementById("ad_libitum_form");
+      var direction = document.createElement("input");
+      direction.name = "direction";
+      direction.value = "next";
+      direction.type = "hidden";
+      var ad_libitum = document.createElement("input");
+      ad_libitum.name = "Ad Libitum";
+      ad_libitum.value = true;
+      ad_libitum.type = "hidden";
+      form.appendChild(direction);
+      form.appendChild(ad_libitum);
+      // form.submit();
+    };
+    </script>
+
+
+   <script>
+    function ad_libitum() {
+       $("<input />").attr("type", "hidden")
+             .attr("name", "direction")
+             .attr("value", "ad_libitum")
+             .appendTo("#entries");
+     };
+   </script>
+
+<script>
+  /**
+  * autofilling for "virus" 
+  */
+  for (let i = 1; i < 11; ++i) {
+    var object_id_to_autocomplete = "#virus" + i.toString();
+    $(object_id_to_autocomplete).autocomplete({ 
+    serviceUrl: '/search/virus',
+    dataType: 'json',
+    minChars: 0,
+    onSearchComplete: function (query, suggestions) {
+      console.log(query);
+      //console.log("in virus autocomplete")
+    },
+    });
+  }
+</script>
+
+
+<script>
+  /**
+  * autofilling 'virus construct #' field after 'virus #' updated
+  */
+  var autosuggestions = document.getElementsByClassName("autocomplete-suggestions")
+  
+
+  console.log("autosuggestions: ${autosuggestions")
+
+  function myFunction(event, index) {
+    
+    var virus_construct_str = "virus_construct" + index.toString();
+    var virus_construct = document.getElementById(virus_construct_str)
+
+    var virus_str = "virus" + index.toString();
+    
+    var virus = document.getElementById(virus_str)
+          $.getJSON("/get_virus_construct/"+virus.value, 
+          function(json) {
+                          virus_construct.value = json['virus construct']
+                          // if (json["virus constuct"]) {
+                          //   virus_construct.value = json['virus construct']
+                          // }
+                        }
+            );
+  }
+  
+  for (var i = 1; i < 11; ++i) {
+    let index = i;
+    autosuggestions[i-1].addEventListener('click', 
+    (event) => 
+    {
+      myFunction(event, index);
+    }, false)
+  }
+</script>
+
+
+
+<script>
+  /**
+  * autofilling for "coordinates name" 
+  */
+  for (let i = 0; i < 11; ++i) {
+    var object_id_to_autocomplete = "#coordinates" + i.toString();
+    $(object_id_to_autocomplete).autocomplete({ 
+    serviceUrl: '/search/coordinates',
+    dataType: 'json',
+    minChars: 0,
+    onSearchComplete: function (query, suggestions) {
+      console.log(query);
+    },
+    });
+  }
+</script>
+
+
+<script>
+  /**
+  * autofilling 'Coordinates Virus #' field after 'Coordinates name #' updated
+  */
+  var autosuggestions = document.getElementsByClassName("autocomplete-suggestions")
+  
+  function myFunctionForCoordinatesAutofill(event, index) {
+
+    var ap_coordinates_virus_id = "AP Coordinate Virus " + index.toString();
+    var ml_coordinates_virus_id = "ML Coordinate Virus " + index.toString();
+    var dv_coordinates_virus_id = "DV Coordinate Virus " + index.toString();
+    
+    var ap_coordinates_virus = document.getElementById(ap_coordinates_virus_id)
+    var ml_coordinates_virus = document.getElementById(ml_coordinates_virus_id)
+    var dv_coordinates_virus = document.getElementById(dv_coordinates_virus_id)
+        
+    var coordinates_id_str = "coordinates" + index.toString();
+
+    var coordinates = document.getElementById(coordinates_id_str)
+          $.getJSON("/get_coordinates_by_name/"+coordinates.value, 
+          function(json) {
+                          ap_coordinate = json['ap_coordinate']
+                          ml_coordinate = json['ml_coordinate']
+                          dv_coordinate = json['dv_coordinate']
+                          
+                          ap_coordinates_virus.value = ap_coordinate
+                          ml_coordinates_virus.value = ml_coordinate
+                          dv_coordinates_virus.value = dv_coordinate
+                        }
+            );
+  }
+  
+  // autosuggestion for coordinates start at 10 (0-9 are for virus autosuggestions)
+  for (var i = 10; i < 20; ++i) {
+    let index = i-10;
+    autosuggestions[i-1].addEventListener('click', 
+    (event) => 
+    {
+      myFunctionForCoordinatesAutofill(event, index);
+    }, false)
+  }
+</script>
+
+
+<script>
+  $('#euthanasia').autocomplete({
+   serviceUrl: '/search/euthanasia',
+   dataType: 'json',
+   minChars: 0,
+   onSearchComplete: function (query, suggestions) {
+     console.log(query);
+   }
+  });
+ </script>
+
+
+ <script>
+  // Get the modal
+  var modal = document.getElementById("myModal");
+
+  // Get the button that opens the modal
+  var btn = document.getElementById("myBtn");
+
+  // Get the <span> element that closes the modal
+  var span = document.getElementsByClassName("close")[0];
+
+  // When the user clicks on the button, open the modal
+  btn.onclick = function() {
+    modal.style.display = "block";
+  }
+
+  // When the user clicks on <span> (x), close the modal
+  span.onclick = function() {
+    modal.style.display = "none";
+  }
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+  </script>
+
+<script>
+  // Get the modal
+  var ad_modal = document.getElementById("ad_libitumModal");
+
+  // Get the button that opens the modal
+  var ad_btn = document.getElementById("ad_libitumBtn");
+
+  // Get the <span> element that closes the modal
+  var ad_span = document.getElementById("ad_libitumClose");
+
+  // When the user clicks on the button, open the modal
+  ad_btn.onclick = function() {
+    ad_modal.style.display = "block";
+  }
+
+  // When the user clicks on <span> (x), close the modal
+  ad_span.onclick = function() {
+    ad_modal.style.display = "none";
+  }
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function(event) {
+    if (event.target == ad_modal) {
+      ad_modal.style.display = "none";
+    }
+  }
+  </script>
+
+<script>
+  // Get the modal
+  var summary = document.getElementById("SummaryModal");
+
+  // Get the button that opens the modal
+  var btn = document.getElementById("summary_btn");
+
+  // Get the <span> element that closes the modal
+  var span = document.getElementById("summaryclose");
+
+  // When the user clicks on the button, open the modal
+  btn.onclick = function() {
+    summary.style.display = "block";
+  }
+
+  // When the user clicks on <span> (x), close the summary
+  span.onclick = function() {
+    summary.style.display = "none";
+  }
+
+  // When the user clicks anywhere outside of the summary, close it
+  window.onclick = function(event) {
+    if (event.target == summary) {
+      summary.style.display = "none";
+    }
+  }
+  </script>
+
+
+
+</section>
