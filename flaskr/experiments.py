@@ -1,3 +1,10 @@
+
+###
+# When one created an experiment (sequence of actions) a user goes through the experiment created, 
+# this file is for the process of going though an experiment designed. Yes, it's comlex!
+# The corresponding frontend is eperiments.html
+###
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
@@ -29,12 +36,16 @@ def reload_licences(id):
     download_licences()
     return redirect(url_for('experiments.design_experiment', id=id))
 
+
+
 @bp.route("/<int:id>/reload_projects", methods=('GET', 'POST'))
 @login_required
 def reload_projects(id):
     user_id = session.get('user_id')
     download_user_projects(user_id)
     return redirect(url_for('experiments.design_experiment', id=id))
+
+
 
 @bp.route("/<int:id>/reload_licences_and_projects", methods=('GET', 'POST'))
 @login_required
@@ -44,12 +55,14 @@ def reload_licences_and_projects(id):
     return redirect(url_for('experiments.design_experiment', id=id))
 
 
+
 def minimize(name):
     template_name = ""
     for a in name.lower().split(" "):
         template_name += a + "_"
     template_name = template_name[:-1]
     return(template_name)   
+
 
 def get_mouse(id):
     mouse = Mice.query.filter(Mice.id==id).first()
@@ -59,9 +72,11 @@ def get_mouse(id):
 
     return mouse
 
+
 def upload_entries_to_form(form, step_id):
     entries = Entries.query.filter(Entries.step_id==step_id).all()
     if entries==[]:
+        return "HERE_HERE_1"
         return None
     for field in form:
         if not 'value' in field:
@@ -105,10 +120,12 @@ def upload_entries_to_form(form, step_id):
         extra_values.append({'name':entry.name, 'value':entry.content})
     return extra_values
 
+
 def default_time_value(form): #Adds a default time (current time) to datetime fields (prevents IOS platforms bug)
     for field in form:
         if (field['type']=="datetime-local") and ('value' not in field):
             field['value'] = datetime.now().strftime("%Y-%m-%dT%H:%M")
+
 
 # display(args, reload_step=current_step, buffer=buffer_only)
 def display(args, reload_step=None, buffer=False):
@@ -127,7 +144,9 @@ def display(args, reload_step=None, buffer=False):
     if buffer:
         return args
     else:
+        
         return render_template('actions/experiment.html', **args, comment_value=comment_value, step=reload_step.id, scoring_values=scoring_values)   
+
 
 
 @bp.route('/<int:id>/previous_step', methods=('GET', 'POST')) 
@@ -141,10 +160,10 @@ def go_back(id): ### Change to extract last entry and go directly to experiment 
         procedure = Procedures.query.filter(Procedures.id==current_step.procedure_id).first() 
         return redirect(url_for('experiments.'+minimize(procedure.name), id=id, step_id=current_step.id))    
     else:
-        print('run')
         procedure = Procedures.query.filter(Procedures.id==previous_step.procedure_id).first() 
         return redirect(url_for('experiments.'+minimize(procedure.name), id=id, step_id=previous_step.id))            
     
+
 
 @bp.route('/get_last_weight/<int:mouse_id>', methods=('GET', 'POST'))
 @login_required
@@ -163,6 +182,7 @@ def get_last_weight(mouse_id):
         return jsonify({"lastweight":None})
 
 
+
 def get_last_ref_weight(mouse_id):
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
     weight_entry = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.reference_weight).order_by(desc(Entries.id)).first() 
@@ -174,6 +194,7 @@ def get_last_ref_weight(mouse_id):
             db.session.commit()
             return get_last_ref_weight(mouse_id)
     else:
+        return "HERE_HERE_2"
         return None
 
 
@@ -186,7 +207,9 @@ def get_virus_construct(virus_name):
         virus_construct = str(virus_construct_entry.construct)
         return jsonify({"virus construct" : virus_construct})
     else:
+        return "HERE_HERE_3"
         return None
+
 
 
 @bp.route('/get_coordinates_by_name/<coordinates_name>', methods=('GET', 'POST'))
@@ -200,10 +223,12 @@ def get_coordinates_by_name(coordinates_name):
     dv_coordinate = str(coordinates_entry.DV)
     
     if not(ap_coordinate and ml_coordinate and dv_coordinate):
+        return "HERE_HERE_4"
         return None
     else: 
         return jsonify({"ap_coordinate": ap_coordinate, "ml_coordinate": ml_coordinate, "dv_coordinate": dv_coordinate})
     
+
 
 def get_last_time_schedule(mouse_id, current_step):
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id, Steps.id<current_step.id).subquery()
@@ -211,7 +236,10 @@ def get_last_time_schedule(mouse_id, current_step):
     if last_time:
         return last_time
     else:
+        return "HERE_HERE_5"
         return None    
+
+
 
 # @bp.route('/get_virus_construct/<virus_name>', methods=('GET', 'POST'))
 # @login_required
@@ -226,15 +254,19 @@ def get_last_time_schedule(mouse_id, current_step):
 #         return None
 
 
+
 @bp.route('/<int:id>/update_severity_to_next', methods=('GET', 'POST'))
 @login_required
 def update_severity_to_next(id):
     return _update_severity(id, next=True)
 
+
+
 @bp.route('/<int:id>/update_severity_to_index', methods=('GET', 'POST'))
 @login_required
 def update_severity_to_index(id):
     return _update_severity(id, next=False)
+
 
 def _update_severity(id, next=False):
     mouse = get_mouse(id)
@@ -254,16 +286,20 @@ def _update_severity(id, next=False):
         else:
             return redirect(url_for('mouse.index'))
 
+    
     return render_template('actions/severity.html', mouse=mouse, current_severity=severity, severity_status=["Not in experiment", "0", "1", "2", "3"])
 
 
 def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = None, severity=False):
 
+    
+    
     if isinstance(forms, dict):
         forms = forms.to_dict(flat=True)
     if extra_entries:
         forms.update(extra_entries)
 
+    
     #Prepare next step if there isn't already a created next step for this procedure
     if next_step_args:
         next_step = Steps.query.filter(Steps.procedure_id==step.procedure_id, Steps.name==next_step_args['name'], Steps.id>step.id).first()
@@ -273,6 +309,7 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
             db.session.add(next_step)
             db.session.commit()
 
+    
     if 'comment' in forms:
         step.comment = forms.pop('comment')
     step.new = False
@@ -328,6 +365,7 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
                 db.session.add(Entries(**inputs))
         db.session.commit()
 
+    
     # Redirects to next page
     if not severity:
         if direction == 'next':
@@ -336,10 +374,9 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
             return redirect(url_for('mouse.index'))
     else:
         if direction == 'next':
-            redirect(url_for('experiments.update_severity_to_next', id=step.mouse_id))
+            return redirect(url_for('experiments.update_severity_to_next', id=step.mouse_id))
         else:
-            redirect(url_for('experiments.update_severity_to_index', id=step.mouse_id))
-
+            return redirect(url_for('experiments.update_severity_to_index', id=step.mouse_id))
 
 
 
@@ -383,7 +420,9 @@ def choose_experiment(id):
         db.session.commit()
         return redirect(url_for('experiments.start_experiment', id=id))
 
+    
     return render_template('actions/experiment_choice.html', mouse=mouse, experiments=experiments_list)
+
 
 
 
@@ -397,14 +436,12 @@ injection_surgery_steps = ['Pre-surgical Scoring', 'Surgery Setup', 'Surgery Pro
 def injection_surgery(id, step_id):
     return _injection_surgery(id,step_id)
 
+
 def _injection_surgery(id, step_id, buffer_only=False): #experiment
     steps_names = injection_surgery_steps
     mouse = get_mouse(id)
 
-
-    # construct field ? 
     
-
 
     current_step = Steps.query.filter(Steps.id==step_id).first()
     injection = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
@@ -444,18 +481,19 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
         # {'name':"Virus Injection speed (nL/min)", 'id':"virus_inj_speed", 'type':"float"}, 
         # {'name':"Post-injection waiting (minutes)", 'id':"virus_waiting", 'type':"number"}
         ]
-
+        '''
+        '''
         ### VIRUS FIELDS ###
         class VirusBlock:
             def __init__(self, virus_block_id: str, inputs:list):
                 self.class_name = virus_block_id[:-1]
                 self.block_id = virus_block_id
                 self.inputs = inputs
-
+        
         viruses_setup = [ VirusBlock("virus_block{}".format(i), [
             {'name':"Virus {}".format(i), 'id':"virus{}".format(i), 'type':"virus",'not_required':True, 'block':"virus_block_{}".format(i)}, 
             {'name':"Virus {} construct".format(i), 'id': "virus_construct{}".format(i), 'type': "virus", 'fetch_data': True, 'block':"virus_block_{}".format(i)}, 
-            {'name':"Coordinates name {} (optional)".format(i), 'id':"coordinates{}".format(i), 'type':"virus", 'not_required':True, 'block':"virus_block_{}".format(i)},
+            {'name':"Coordinates name for Virus {} (optional)".format(i), 'id':"coordinates{}".format(i), 'type':"virus", 'not_required':True, 'block':"virus_block_{}".format(i)},
             {'name':"Coordinates Virus {} (AP/ML/DV)".format(i), 'id':"coord{}".format(i), 'type':"virus", 'secondary_type':"multiple", 'block':"virus_block_{}".format(i), 
                     'fields':[
                         {'id':"AP Coordinate Virus {}".format(i)}, 
@@ -480,6 +518,7 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
                 self.inputs = inputs
 
         implantations_setup = [ ImplantationBlock("implantation_block{}".format(i), [
+            {'name':"Coordinates name for Implantation {} (optional)".format(i), 'id':"coordinates_implantation{}".format(i), 'type':"virus", 'not_required':True, 'block':"virus_block_{}".format(i)},
             {'name':"Implantation Coordinates {} (AP/ML/DV)".format(i), 'id':"coord{}".format(i), 'type':"virus",'not_required':True, 'block':"implantation_block_{}".format(i), 'secondary_type':"multiple", 'fields':[{'id':"AP Coordinate Implantation {}".format(i)}, {'id':"ML Coordinate Implantation {}".format(i)}, {'id':"DV Coordinate Implantation {}".format(i)}]} 
             ]) for i in range(0, 10) ]
 
@@ -495,20 +534,30 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
         args = {'mouse':mouse, 'page_name':"Injection Surgery Setup", 'forms':surgery_setup_page, 'viruses': viruses_setup, 'add_virus_btn_required' : True, 'implantations':implantations_setup}
         return display(args, reload_step=current_step, buffer=buffer_only)
+        
 
     elif current_step.name == steps_names[2]:
-        surgery_protocol = [{'name':"Anesthetic Injection Time", 'id':"inj_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
-        {'name':"Lidocain", 'id':"lido", 'type':"bool", 'choices':[{'id':"yes", 'name':"Yes", 'value':"True"}, {'id':"no", 'name':"No", 'value':"False", 'checked':True}]},
-        {'name':"End of Surgery", 'id':"surg_end", 'type':"datetime-local"},
-        {'name':"Wake-up Time", 'id':"wakeup_time", 'type':"datetime-local"}, {'name':"Post-surgical BU", 'id':"post_bu", 'type':"datetime-local"}]
+
+        
+        surgery_protocol = [
+            {'name':"Anesthetic Injection Time", 'id':"inj_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
+            {'name':"Lidocain", 'id':"lido", 'type':"bool", 'choices':[{'id':"yes", 'name':"Yes", 'value':"True"}, {'id':"no", 'name':"No", 'value':"False", 'checked':True}]},
+            {'name':"End of Surgery", 'id':"surg_end", 'type':"datetime-local"},
+            {'name':"Wake-up Time", 'id':"wakeup_time", 'type':"datetime-local"}, 
+            {'name':"Post-surgical BU", 'id':"post_bu", 'type':"datetime-local"}
+            ]
 
         surgery_setup = Steps.query.filter(Steps.mouse_id==id, Steps.name.contains(steps_names[1]), Steps.procedure_id==injection.id).order_by(desc(Steps.id)).first()
         setup_entries = Entries.query.filter(Entries.step_id == surgery_setup.id).all()
         setup_reminder = [] 
         CoordinateVirus1 = [""]*3
         CoordinateVirus2 = [""]*3
+        
         for entry in setup_entries:
             if entry.name=="Time":
+                tt = interprete(entry)
+                print("TIME_558")
+                print(tt)
                 min_surg_time = interprete(entry) + timedelta(minutes=20)
                 max_surg_time = interprete(entry) + timedelta(hours=4)
                 early_surg = min_surg_time.strftime("%I:%M%p")
@@ -521,6 +570,7 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
                     if weight:
                         injection_volume = str(0.01*float(weight))+' ml' 
                         setup_reminder.append({'name':"Ketamine volume to inject", 'value':injection_volume})
+        
             elif entry.name=="Virus":
                 virus_name = interprete(entry)
                 setup_reminder.append({'name':entry.name, 'value':virus_name})
@@ -549,12 +599,36 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             elif entry.name=="DV Coordinate Virus 2":
                 CoordinateVirus2[2] = entry.content
             elif interprete(entry):
-                setup_reminder.append({'name':entry.name, 'value':interprete(entry)})
+                print(setup_reminder)
+                
+
+                def get_time_from_entries_for_bu_ca(ents):
+                    entries_interpreted = [interprete(ent) for ent in ents]
+                    bu_and_ca = ("BU" in entries_interpreted) and ("CA" in entries_interpreted)
+                    bu_and_not_ca = ("BU" in entries_interpreted) and (not ("CA" in entries_interpreted))
+                    not_bu_and_ca = (not ("BU" in entries_interpreted)) and ("CA" in entries_interpreted)
+                    
+                    if bu_and_ca:
+                        return entries_interpreted[2]
+                    elif bu_and_not_ca or not_bu_and_ca: 
+                        return entries_interpreted[1]
+                    else:
+                        # means we don't need time for BU or CA
+                        return False
+
+                time_for_bu_ca = get_time_from_entries_for_bu_ca(setup_entries)
+                if time_for_bu_ca:
+                    setup_reminder.append({'name':entry.name, 'value':interprete(entry) + " [Injection time: " + str(time_for_bu_ca) + "]"})
+                else:
+                    setup_reminder.append({'name':entry.name, 'value':interprete(entry)})
+                print(setup_reminder)
 
         if "".join(CoordinateVirus1)!="":
             setup_reminder.append({'name':"Coordinates (AP/ML/DV) Virus 1", 'value':"/".join(CoordinateVirus1)})
         if "".join(CoordinateVirus2)!="":
             setup_reminder.append({'name':"Coordinates (AP/ML/DV) Virus 2", 'value':"/".join(CoordinateVirus2)})
+
+        
 
         surgery_protocol[0]['min']=min_surg_time
         surgery_protocol[0]['max']=max_surg_time
@@ -562,13 +636,19 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
 
         if request.method == 'POST':
+            
             next_step_args = {'name': steps_names[3]+'_'+InjS_Scoring[0], 'mouse_id':id, 'procedure_id':injection.id}
             return readout(request.form, current_step, surgery_protocol, next_step_args, severity=True)
 
+        
+
+        
         args = {'mouse':mouse, 'page_name':"Injection Surgery Protocol", 'forms':surgery_protocol, 'display':setup_reminder, 'display_title':"Surgery info"}
         return display(args, reload_step=current_step, buffer=buffer_only)
 
     else:
+        
+        
 
         if not ('Day' in current_step.name): # not initialized post-surgery scoring
             current_step.name = current_step.name+'_'+InjS_Scoring[0]
@@ -629,10 +709,10 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
 
 
+
+
 ImpS_Scoring = ['Day1/1', 'Day1/2', 'Day2/1', 'Day2/2', 'Day3/1', 'Day3/2', 'Day4', 'Day5', 'Day6', 'Day7']
 ImpS_Scoring_Delays =  [timedelta(days=0), timedelta(days=1), timedelta(days=0), timedelta(days=1), timedelta(days=0), timedelta(days=1), timedelta(days=1), timedelta(days=1), timedelta(days=1), timedelta(days=7)]
-
-
 
 
 
@@ -641,8 +721,6 @@ ImpS_Scoring_Delays =  [timedelta(days=0), timedelta(days=1), timedelta(days=0),
 implantation_surgery_steps = ['Pre-surgical Scoring', 'Surgery Setup', 'Surgery Protocol', 'Post-surgery Scoring']
 # Vadim
 surgery_steps = ["Vadim_1", "Vadim_2"]
-
-
 
 
 
@@ -710,6 +788,9 @@ def _implantation_surgery(id, step_id, buffer_only=False): #experiment
         Coordinate = [""]*3
         for entry in setup_entries:
             if entry.name=="Time":
+                ttt = interprete(entry)
+                print("TIME")
+                print(ttt)
                 min_surg_time = interprete(entry) + timedelta(minutes=20)
                 max_surg_time = interprete(entry) + timedelta(hours=4)
                 early_surg = min_surg_time.strftime("%I:%M%p")
@@ -742,7 +823,7 @@ def _implantation_surgery(id, step_id, buffer_only=False): #experiment
             next_step_args = {'name':steps_names[3]+'_'+InjS_Scoring[0], 'mouse_id':id, 'procedure_id':implantation.id}
             return readout(request.form, current_step, surgery_protocol, next_step_args, severity=True)
 
-
+        
         return render_template('actions/experiment.html', mouse=mouse, page_name="Implantation Surgery Protocol", forms=surgery_protocol, display=setup_reminder, display_title="Surgery info") 
 
 
@@ -1461,5 +1542,5 @@ def design_experiment(id):
 
     user_projects = Projects.query.filter(Projects.user_id==user_id).all()
 
-    print('Functions', Functions)
+    
     return render_template('actions/experiment_design.html', id=id, actions=Procedures_names, projects=user_projects)

@@ -1,3 +1,9 @@
+
+###
+# Backend for Viruses (button on the top of the main page and some of the others).
+# Procedures for navigating the virus table, updating, adding, deleting a virus
+###
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, session
 )
@@ -22,56 +28,38 @@ from sqlalchemy import and_, or_
 #from .experiments
 bp = Blueprint('virus', __name__)
 
+## geting to the list of viruses ## 
 @bp.route('/virus_index', methods=('GET', 'POST'))
 @login_required
 def index():
-
-    print("------------")
-    print("------------")
-    print("in virus.py: index()")
-    print("------------")
-    print("request.form")
-    print(request.form)
-    print("------------")
-    print("request.method")
-    print(request.method)
-    print("------------")
-
     for item in request.form:
         print(item)
         print("--------")
-
     if request.method=='POST':
-
         if 'virus_index_name' in request.form:
             virus_name = request.form['virus_index_name']
             virus_list = Viruses.query.filter(Viruses.name==virus_name).order_by(asc(Viruses.id)).all()
-
     else:
         virus_list = Viruses.query.order_by(asc(Viruses.id)).all() 
-        
-
     return render_template('virus/index.html', virus_list=virus_list)
 
 
+## get the virus from the database according "id" ##
 def get_virus(id):
     virus = Viruses.query.filter(Viruses.id==id).first()
-
     if virus is None:
         abort(404, "Mouse id {0} doesn't exist.".format(id))
-
     return virus
 
+## changing existing virus ##
 @bp.route('/<int:virus_id>/virus_update', methods=('GET', 'POST'))
 @login_required
 def virus_update(virus_id):
     virus = get_virus(virus_id)
-
     if request.method == 'POST':
         name = request.form['name']
         construct = request.form['construct']
         container = request.form['container']
-
         error = None
         already_exist = Viruses.query.filter(Viruses.id!=virus_id, Viruses.name==name).first()
         if already_exist:
@@ -88,9 +76,9 @@ def virus_update(virus_id):
             db.session.query(Viruses).filter(Viruses.id == virus_id).update(inputs)
             db.session.commit()
             return redirect(url_for('virus.index'))
-
     return render_template('virus/virus_update.html', virus=virus)
 
+## deleting virus ## 
 @bp.route('/<int:id>/delete', methods=('GET', 'POST'))
 @login_required
 def delete(id):
@@ -99,7 +87,7 @@ def delete(id):
     db.session.commit()
     return redirect(url_for('virus.index'))
 
-
+## add new virus ##
 @bp.route('/new_virus', methods=('GET', 'POST'))
 @login_required
 def add_virus():

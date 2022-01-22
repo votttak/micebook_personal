@@ -1,3 +1,8 @@
+###
+# Backend for Coordinates (button on the top of the main page and some of the others).
+# Procedures for navigating the coordinates table, updating, adding, deleting a coordinate
+###
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, session
 )
@@ -22,6 +27,8 @@ from sqlalchemy import and_, or_
 #from .experiments
 bp = Blueprint('coordinates', __name__)
 
+
+## show the existing coordinats ("coordinates" button on the top clicked) ## 
 @bp.route('/coordinates_index', methods=('GET', 'POST'))
 @login_required
 def index():

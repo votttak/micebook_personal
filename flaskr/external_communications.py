@@ -1,3 +1,11 @@
+
+
+###
+# connecting to the iRats and navigating the website (iRats) automatically to load needed data
+# e.g. Mice, Projects, Licences
+# 
+###
+
 from csv import reader
 from flaskr.tables import *
 from sqlalchemy import desc
@@ -21,6 +29,11 @@ if platform == "linux":
 # irats_username = 'roman'
 # irats_pw = 'megu0210'
 
+# irats_username = 'durnovv'
+# irats_pw = 'qQ1234567'
+
+
+## ??? ##
 def interprete(entry, display_mode=False, type=None):
     if not entry or entry.content=="":
         return None
@@ -494,28 +507,59 @@ def download_licences_and_projects(user_id):
 
     db.session.commit()
 
+
+    
+
+  
     driver.find_element_by_link_text("Projects").click()
     time.sleep(2)
-
+    
+    print("in download_licences_and_projects: 1")
     user = Users.query.filter(Users.id==user_id).first()
+    print(user)
+    print("in download_licences_and_projects: 2")
 
     user_search = driver.find_element_by_xpath("//*[.='User: ']/following-sibling::td/div[@class='searchable-select']/div[@class='searchable-select-holder']")
+    print(user_search)
     user_search.click()
     user_input = driver.find_element_by_xpath("//*[.='User: ']/following-sibling::td/div[@class='searchable-select']/div[@class='searchable-select-dropdown']/input") #[@class='searchable-select-input')
     user_input.send_keys(user.full_name.split(" ")[0])
     time.sleep(2)
+    print("in download_licences_and_projects: 3")
     	
     split_user_name = user.full_name.split(" ")
-
-    select_path = "//div[contains(@class,'searchable-select-item')"
+    print("split_user_name")
+    print(split_user_name)
+    #split_user_name = ['Boehringer Roman']
+    print(split_user_name)
+    #select_path = "//div[contains(@class,'searchable-select-item')"
+    select_path = "//*[.='User: ']/following-sibling::td/div[@class='searchable-select']/div[@class='searchable-select-dropdown']/div[@class='searchable-scroll']/div[@class='searchable-select-items']/div[contains(@class,'searchable-select-item')"
+    print("select_path")
+    print(select_path)
     full_select_path = select_path + "".join([" and contains(text(),'"+name_part+"')" for name_part in split_user_name]) + "]"
+    print("full_select_path")
+    print(full_select_path)
     user_select = driver.find_element_by_xpath(full_select_path)
+    print("user_select")
+    print(user_select)
+    print("in download_licences_and_projects: 4")
+    time.sleep(1)
+    #driver.implicitly_wait(10)
+    #user_select.click()
+
+    # from selenium.webdriver.common.keys import Keys
+    # element = driver.send_keys(Keys.RETURN)
+    # element.submit()
+
     user_select.click()
+    print("in download_licences_and_projects: 5")
 
 
     licence_search_form = driver.find_element_by_name("searchForm")
     licence_search_form.submit()
     time.sleep(1)
+
+    print("in download_licences_and_projects: 6")
 
     result_table_path = "//table[@class='taulu']/tbody"
     Projects_list = []
@@ -538,11 +582,13 @@ def download_licences_and_projects(user_id):
             old_project.description = project.description
             old_project.licence_id = project.licence_id
 
+    print("in download_licences_and_projects: 7")
     db.session.commit()
 
     driver.find_element_by_link_text("Log out").click()
 
     driver.close()
+    print("in download_licences_and_projects: 8")
 
 
 def Load_Viruses(file_name, db, Viruses, update=False):

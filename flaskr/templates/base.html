@@ -170,6 +170,8 @@
   */
   var autosuggestions = document.getElementsByClassName("autocomplete-suggestions")
   
+  console.log("autosuggestion virus")
+  console.log(autosuggestions)
 
   console.log("autosuggestions: ${autosuggestions")
 
@@ -207,6 +209,7 @@
   /**
   * autofilling for "coordinates name" 
   */
+  //for (let i = 0; i < 11; ++i) {
   for (let i = 0; i < 11; ++i) {
     var object_id_to_autocomplete = "#coordinates" + i.toString();
     $(object_id_to_autocomplete).autocomplete({ 
@@ -221,13 +224,19 @@
 </script>
 
 
+
+
+
 <script>
   /**
-  * autofilling 'Coordinates Virus #' field after 'Coordinates name #' updated
+  * autofilling 'Coordinates Virus #' field after 'Coordinates name for Virus #' updated
   */
   var autosuggestions = document.getElementsByClassName("autocomplete-suggestions")
   
-  function myFunctionForCoordinatesAutofill(event, index) {
+  console.log("autosuggestion coordinates")
+  console.log(autosuggestions)
+
+  function myFunctionForCoordinatesAutofillVirus(event, index) {
 
     var ap_coordinates_virus_id = "AP Coordinate Virus " + index.toString();
     var ml_coordinates_virus_id = "ML Coordinate Virus " + index.toString();
@@ -240,29 +249,137 @@
     var coordinates_id_str = "coordinates" + index.toString();
 
     var coordinates = document.getElementById(coordinates_id_str)
-          $.getJSON("/get_coordinates_by_name/"+coordinates.value, 
+    $.getJSON("/get_coordinates_by_name/"+coordinates.value, 
           function(json) {
                           ap_coordinate = json['ap_coordinate']
                           ml_coordinate = json['ml_coordinate']
                           dv_coordinate = json['dv_coordinate']
                           
+                          console.log("HERE_091")
+
                           ap_coordinates_virus.value = ap_coordinate
                           ml_coordinates_virus.value = ml_coordinate
                           dv_coordinates_virus.value = dv_coordinate
                         }
-            );
+                        );
+                        
   }
   
-  // autosuggestion for coordinates start at 10 (0-9 are for virus autosuggestions)
+  // autosuggestion for coordinates (for virus) start at 10 (0-9 are for virus autosuggestions)
+  //for (var i = 10; i < 30; ++i) {
   for (var i = 10; i < 20; ++i) {
     let index = i-10;
+    console.log("autosuggestions.addEventListener IN VIRUS")
+    console.log(index)
     autosuggestions[i-1].addEventListener('click', 
     (event) => 
     {
-      myFunctionForCoordinatesAutofill(event, index);
+      myFunctionForCoordinatesAutofillVirus(event, index);
     }, false)
   }
 </script>
+
+
+
+
+
+
+
+
+<script>
+  /**
+  * autofilling for "coordinates implantation name" 
+  */
+  //for (let i = 0; i < 11; ++i) {
+  for (let i = 0; i < 11; ++i) {
+    var object_id_to_autocomplete = "#coordinates_implantation" + i.toString();
+    $(object_id_to_autocomplete).autocomplete({ 
+    serviceUrl: '/search/coordinates',
+    dataType: 'json',
+    minChars: 0,
+    onSearchComplete: function (query, suggestions) {
+      console.log(query);
+    },
+    });
+  }
+</script>
+
+
+
+<script>
+  /**
+  * autofilling 'Coordinates Implantation #' field after 'Coordinates name for Implantation #' updated
+  */
+  var autosuggestions = document.getElementsByClassName("autocomplete-suggestions")
+  
+ 
+
+  function myFunctionForCoordinatesAutofillImplantation(event, index) {
+
+    var ap_coordinates_implantation_id = "AP Coordinate Implantation " + index.toString();
+    var ml_coordinates_implantation_id = "ML Coordinate Implantation " + index.toString();
+    var dv_coordinates_implantation_id = "DV Coordinate Implantation " + index.toString();
+    
+    var ap_coordinates_implantation = document.getElementById(ap_coordinates_implantation_id)
+    var ml_coordinates_implantation = document.getElementById(ml_coordinates_implantation_id)
+    var dv_coordinates_implantation = document.getElementById(dv_coordinates_implantation_id)
+        
+    var coordinates_id_str = "coordinates_implantation" + index.toString();
+
+
+    var coordinates = document.getElementById(coordinates_id_str)
+    console.log(coordinates)
+    $.getJSON("/get_coordinates_by_name/"+coordinates.value, 
+          function(json) {
+                          ap_coordinate = json['ap_coordinate']
+                          ml_coordinate = json['ml_coordinate']
+                          dv_coordinate = json['dv_coordinate']
+                          
+                          console.log("HERE_67")
+                          console.log(ap_coordinate)
+                          console.log(ml_coordinate)
+                          console.log(dv_coordinate)
+
+                          ap_coordinates_implantation.value = ap_coordinate
+                          ml_coordinates_implantation.value = ml_coordinate
+                          dv_coordinates_implantation.value = dv_coordinate
+                        }
+                        );
+                        
+  }
+  
+  // autosuggestion for coordinates (for implantation) start at 10 (0-9 are for virus autosuggestions, 10-19 for virus coordinates autosuggestions, 20-29 for implantation coordinations autosuggestions)
+  for (var i = 20; i < 30; ++i) {
+    // index is used to navigate proper id="coordinates_implantation[index]"
+    let index = i-20;
+    console.log("autosuggestions.addEventListener IN IMPLANTAATION")
+    console.log(index)
+    autosuggestions[i-1].addEventListener('click', 
+    (event) => 
+    {
+      myFunctionForCoordinatesAutofillImplantation(event, index);
+    }, false)
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <script>

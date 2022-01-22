@@ -1,3 +1,9 @@
+###
+# in short: when one clicks on the button "All mice" or "Index" one gets the mice list the users is working with. The mice info and correspondig options are the done with this code. 
+# The corresponding frontend is mouse/index.html
+###
+
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, session
 )

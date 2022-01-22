@@ -1,3 +1,7 @@
+##
+# v_11 (22.01.2022)
+##
+
 import os
 
 from flask import Flask, json, jsonify

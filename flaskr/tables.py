@@ -1,3 +1,15 @@
+
+
+###
+# Tables defined using SQLalchemy logic.
+# Those are generated upon launch of the server. 
+# db (database object) imported from __init__.py 
+# If a database with a data already exists, the tables here and in the DB have to align, otherwise update the database.  
+# Remark: Follow Migration Update procedure when updating DB, in the terminal running the app
+#         - flask db migrate -m "database update name"
+#         - flask db upgrade
+###
+
 import os
 from . import db
 from datetime import datetime
