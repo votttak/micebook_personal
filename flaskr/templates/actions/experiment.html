@@ -6,7 +6,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %} Mouse {{ mouse.irats_id }}-{{ page_name }}{% endblock %}</h1>
+  <h1>{% block title %} Mouse {{ mouse.irats_id }} [cage {{ mouse.cage }}] - {{ page_name }}{% endblock %}</h1>
   <div>
     
     {% if last_action %}
@@ -67,24 +67,54 @@
         {% if form['type'] == "bool" %}
         <div>
           <div> 
-          <label for="{{form['id']}}">{{form['name']}}:</label> 
+            <label for="{{form['id']}}">{{form['name']}}:</label> 
+            <!-- injection amount for Lidocain -->
+            {% if form['name'] == "Lidocain" %}
+              <span id="{{form['id']}}_x">(0.000 ml)</span>
+              <span id="weight_for_lidocain" style="display: none;">{{form['weight']}}</span>
+            {% endif %}
           </div>
+          
           <div>
-            {% for box in form['choices'] %}
-              {% if box['checked'] %}
+            
+            <!-- Anesthetic for baseplating -->
+            {% if form['bodyweight_from_same_page'] %}
+              {% for box in form['choices'] %}
+                {% if box['checked'] %}
+                  <div class="radio">
+                    <label for="{{box['id']}}">{{box['name']}}</label>   
+                    <input type="radio" id="{{box['id']}}_b" name="{{form['id']}}" value="{{box['value']}}" disabled>
+                    {% if box['name'] == "Ketamine & Xylazine" %}
+                      <span id="{{form['id']}}_b">(0.00 ml)</span>
+                    {% endif %}
+                  </div>
+                {% else %}
                 <div class="radio">
                   <label for="{{box['id']}}">{{box['name']}}</label>   
-                  <input type="radio" id="{{box['id']}}" name="{{form['id']}}" value="{{box['value']}}" checked>
+                  <input type="radio" id="{{box['id']}}_b" name="{{form['id']}}" value="{{box['value']}}" disabled>
                 </div>
-              {% else %}
+                {% endif %}
+              {% endfor %}
+            <!-- Anesthetic for others (e.g. Injection Surgery Setup in Injection Surgery action) -->
+            {% else %}
+              {% for box in form['choices'] %}
+                {% if box['checked'] %}
+                  <div class="radio">
+                    <label for="{{box['id']}}">{{box['name']}}</label>   
+                    <input type="radio" id="{{box['id']}}" name="{{form['id']}}" value="{{box['value']}}" checked>
+                    {% if box['name'] == "Ketamine & Xylazine" %}
+                      <span id="{{form['id']}}_x">(0.00 ml)</span>
+                    {% endif %}
+                  </div>
+                {% else %}
                 <div class="radio">
                   <label for="{{box['id']}}">{{box['name']}}</label>   
                   <input type="radio" id="{{box['id']}}" name="{{form['id']}}" value="{{box['value']}}">
-                  
-
                 </div>
-              {% endif %}
-            {% endfor %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            
           </div>
           </div>
         </div>
@@ -104,6 +134,7 @@
           <p>{{form['value_name']}}: <span id="value"> </span> </p>
         </div>
         <script>
+
           var slider = document.getElementById("{{form['id']}}");
           var output = document.getElementById("value");
           output.innerHTML = slider.value; // Display the default slider value
@@ -116,15 +147,34 @@
       {% elif form['type'] == "checkbox" %}
       <div>
         <label>{{form['name']}}:</label>
+        
+        {% if form['name'] == "Analgesia" %}
+          <script>
+            // window.alert("REMIDER: don't forget checkboxes for Analgesia!");
+            window.alert("REMIDER: Analgesia must matche during the first 3 days of post-surgical scoring!");
+          </script>
+        {% endif %}
+        
         {% for choice in form['choices'] %}
           {% if choice['checked'] %}
             <label >{{choice['name']}}</label>
             <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}" checked>
           {% else %}
             <label >{{choice['name']}}</label>
-            <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}">   
-          {% endif %}       
-        {% endfor %}
+            <!-- checkbox for Pre-emptive Analgesia should be active because the weight is taken from previous step -->
+            {% if form['name'] == "Pre-emptive Analgesia" %}
+              <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}">
+            {% else %}
+              <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}" disabled>     
+            {% endif %}   
+            <span id="{{choice['id']}}_x">(0.0000 ml)</span>
+          {% endif %}
+          {% endfor %}
+          {% if form['name'] == "Pre-emptive Analgesia" %}
+            <span id="weight_pre_emptive_analgesia" style="display: none;">{{form['weight']}}</span>
+          {% endif %}
+        
+
       </div>
       {% elif form['type'] == "multiple" %}
         <div>
@@ -269,32 +319,52 @@
       {% for implantation_block in implantations %}
             <div id="{{implantation_block.block_id}}" class="{{implantation_block.class_name}}">
               <br>  
-              {% for virus_input in implantation_block.inputs %}
-                  {% if 'fetch_data' in virus_input %}
+              {% for implantation_input in implantation_block.inputs %}
+                  {% if 'fetch_data' in implantation_input %}
                     <div>
-                      <label for="{{virus_input['id']}}">{{virus_input['name']}}</label>
-                      <input type="{{virus_input['type']}}" name="{{virus_input['id']}}" id="{{virus_input['id']}}" value="{{virus_input['value']}}" min="{{virus_input['min']}}" max="{{virus_input['max']}}" size="70" placeholder="">
+                      <label for="{{implantation_input['id']}}">{{implantation_input['name']}}</label>
+                      <input type="{{implantation_input['type']}}" name="{{implantation_input['id']}}" id="{{implantation_input['id']}}" value="{{implantation_input['value']}}" min="{{implantation_input['min']}}" max="{{implantation_input['max']}}" size="70" placeholder="">
                     </div>
-                  {% elif virus_input['secondary_type'] == "multiple" %}  
+                  {% elif implantation_input['secondary_type'] == "multiple" %}  
                     <div>
-                      {% if 'not_required' in virus_input %}
-                        <label>{{virus_input['name']}}:</label>
-                        {% for field in virus_input['fields'] %}
+                      {% if 'not_required' in implantation_input %}
+                        <label>{{implantation_input['name']}}:</label>
+                        {% for field in implantation_input['fields'] %}
                           <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2">
                         {% endfor %}
                       {% else %}
-                        <label>{{virus_input['name']}}:</label>
-                        {% for field in virus_input['fields'] %}
+                        <label>{{implantation_input['name']}}:</label>
+                        {% for field in implantation_input['fields'] %}
                           <input type="text" name="{{field['id']}}" id="{{field['id']}}" value="{{field['value']}}" size="2" >
                         {% endfor %}
                       {% endif %}
                     </div>
+                    
+                  <!-- adding implantation types (tickboxes) -->
+                  {% elif implantation_input['secondary_type'] == "tickboxes" %}
+                    <label>{{implantation_input['name']}}:&nbsp; &nbsp; &nbsp; </label>
+                    {% for choice in implantation_input['choices'] %}
+                      {% if choice['checked'] %}
+                        
+                        <label>{{choice['name']}}  </label>
+                        <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}" checked>
+                      {% else %}
+                        <label >{{choice['name']}}</label>
+                        <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}">   
+                      {% endif %}          
+                    {% endfor %}
+                  <br>
+                  <br> 
+                  
+                  
                   {% else %}
                     <div>
-                      <label for="{{virus_input['id']}}">{{virus_input['name']}}</label>
-                      <input type="{{virus_input['type']}}" name="{{virus_input['id']}}" id="{{virus_input['id']}}" value="{{virus_input['value']}}" min="{{virus_input['min']}}" max="{{virus_input['max']}}" >
+                      <label for="{{implantation_input['id']}}">{{implantation_input['name']}}</label>
+                      <input type="{{implantation_input['type']}}" name="{{implantation_input['id']}}" id="{{implantation_input['id']}}" value="{{implantation_input['value']}}" min="{{implantation_input['min']}}" max="{{implantation_input['max']}}" >
                     </div>
-                  {% endif %}
+                    {% endif %}
+
+
               {% endfor %}
             </div>
       {% endfor %}
@@ -679,9 +749,190 @@
 
 
 
+  <script>
+  ///// change injection amount after scoring (on click) /////
+
+    var bu_checkbox_btn = document.getElementById("bu")
+    bu_checkbox_btn.onclick = function() {
+      var bu_checkbox_value = document.getElementById("bu").checked
+      var score_weight = document.getElementById("score_weight")
+      if (bu_checkbox_value) {
+        if (score_weight.value > 0) {
+          var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+          document.getElementById("bu_x").innerHTML = "(" + dose_ml + " ml)";
+        }
+        else
+          document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+      } else {
+        document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+      }
+    }
+    
+
+    var ca_checkbox_btn = document.getElementById("ca")
+    ca_checkbox_btn.onclick = function() {
+      var ca_checkbox_value = document.getElementById("ca").checked
+      var score_weight = document.getElementById("score_weight")
+      if (ca_checkbox_value) {
+        if (score_weight.value > 0) {
+          var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+          document.getElementById("ca_x").innerHTML = "(" + dose_ml + " ml)";
+        }
+        else
+          document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+      } else {
+        document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+      }
+    }
+
+ </script>
+
+
+ <script> 
+    ///// change injection amount after clicking on "yes" (for Lidocaine) /////
+    var lido_yes_btn = document.getElementById("yes")
+    lido_yes_btn.onclick = function() {
+      var yes_checked = document.getElementById("yes").checked
+      var weight_for_lidocain = document.getElementById("weight_for_lidocain")
+      console.log(weight_for_lidocain)
+      if (yes_checked) {
+        console.log(yes_checked)
+        console.log(weight_for_lidocain.innerHTML)
+        if (weight_for_lidocain.innerHTML > 0) {
+          var dose_ml = (weight_for_lidocain.innerHTML * 0.005).toFixed(3)
+          document.getElementById("lido_x").innerHTML = "(" + dose_ml + " ml)";
+        }
+        else
+          document.getElementById("lido_x").innerHTML = "(0.000 ml)";
+      }
+    }
+
+
+    ///// change injection amount after clicking on "no" (for Lidocaine) /////
+    var lido_no_btn = document.getElementById("no")
+    lido_no_btn.onclick = function() {
+      var no_checked = document.getElementById("no").checked
+      if (no_checked) {
+        document.getElementById("lido_x").innerHTML = "(0.000 ml)";
+      }
+    }
+ </script> 
 
 
 
+
+<script> 
+  ///// change injection amount after clicking on "Ketamin/Xylazin" (in Baseplating) /////
+  var ketamin_xylazin_btn = document.getElementById("ket_b")
+  ketamin_xylazin_btn.onclick = function() {
+    var score_weight = document.getElementById("score_weight")
+    if (score_weight.value > 0) {
+      var dose_ml = (score_weight.value * 0.01).toFixed(2)
+      document.getElementById("anesthetic_b").innerHTML = "(" + dose_ml + " ml)";
+    }
+  }
+
+  ///// set injection amount to (0.00ml) after clicking on "Isoflurane" (Isoflurane is a gas) /////
+  var isoflurane_btn = document.getElementById("isoflurane_b")
+  isoflurane_btn.onclick = function() {
+    var isoflurane_checked = document.getElementById("isoflurane_b").checked
+    if (isoflurane_checked) {
+      document.getElementById("anesthetic_b").innerHTML = "(0.00 ml)";
+    }
+  }
+</script> 
+
+
+
+
+
+
+ <script> 
+   ///// change injection amount after clicking on "Ketamin/Xylazin" (in Injection Surgery Setup) /////
+
+   /// initially "Ketamin/Xylazin" is set, we update dosirung based on weight when loading the page
+   var ketamin_xylazin_btn = document.getElementById("ket")
+   var ketamin_xylazin_checked = document.getElementById("ket").checked
+   // we take the weight from previous step, which has been passed by with "weight_pre_emptive_analgesia"  
+   var weight_from_previous_step = document.getElementById("weight_pre_emptive_analgesia")
+   if (ketamin_xylazin_checked) {
+     if (weight_from_previous_step.innerHTML > 0) {
+       var dose_ml = (weight_from_previous_step.innerHTML * 0.01).toFixed(2)
+       document.getElementById("anesthetic_x").innerHTML = "(" + dose_ml + " ml)";
+     }
+     else
+       document.getElementById("anesthetic_x").innerHTML = "(0.00 ml)";
+   }
+
+   ///// set injection amount to be based on weight after activating "Ketamin/Xylazin"
+   ketamin_xylazin_btn.onclick = function() {
+      console.log(weight_from_previous_step.innerHTML)
+      if (weight_from_previous_step.innerHTML > 0) {
+        var dose_ml = (weight_from_previous_step.innerHTML * 0.01).toFixed(2)
+        document.getElementById("anesthetic_x").innerHTML = "(" + dose_ml + " ml)";
+      }
+      else
+        document.getElementById("anesthetic_x").innerHTML = "(0.00 ml)";
+   }
+  
+  
+ 
+   ///// set injection amount to (0.00ml) after clicking on "Isoflurane" (Isoflurane is a gas) /////
+   var isoflurane_btn = document.getElementById("isoflurane")
+   isoflurane_btn.onclick = function() {
+     var isoflurane_checked = document.getElementById("isoflurane").checked
+     if (isoflurane_checked) {
+       document.getElementById("anesthetic_x").innerHTML = "(0.00 ml)";
+     }
+   }
+ </script> 
+
+
+
+ <script>
+  ///// change ingection amount after scoring (for Pre-emptive analgesia) /////
+ 
+    var bu_checkbox_btn_pre_emptive = document.getElementById("bu_pre_emptive")
+    bu_checkbox_btn_pre_emptive.onclick = function() {
+      var bu_checkbox_value = document.getElementById("bu_pre_emptive").checked
+      var weight_from_previous_step = document.getElementById("weight_pre_emptive_analgesia")
+      console.log(weight_from_previous_step.innerHTML)
+      if (bu_checkbox_value) {
+        if (weight_from_previous_step.innerHTML > 0) {
+          var dose_ml = (weight_from_previous_step.innerHTML * 0.0033).toFixed(4)
+          document.getElementById("bu_pre_emptive_x").innerHTML = "(" + dose_ml + " ml)";
+        }
+        else
+          document.getElementById("bu_pre_emptive_x").innerHTML = "(0.0000 ml)";
+      } else {
+        document.getElementById("bu_pre_emptive_x").innerHTML = "(0.0000 ml)";
+      }
+    }
+
+
+
+
+    var ca_checkbox_btn_pre_emptive = document.getElementById("ca_pre_emptive")
+    ca_checkbox_btn_pre_emptive.onclick = function() {
+      var ca_checkbox_value = document.getElementById("ca_pre_emptive").checked
+      var weight_from_previous_step = document.getElementById("weight_pre_emptive_analgesia")
+      console.log(weight_from_previous_step.innerHTML)
+      if (ca_checkbox_value) {
+        if (weight_from_previous_step.innerHTML > 0) {
+          var dose_ml = (weight_from_previous_step.innerHTML * 0.0033).toFixed(4)
+          document.getElementById("ca_pre_emptive_x").innerHTML = "(" + dose_ml + " ml)";
+        }
+        else
+          document.getElementById("ca_pre_emptive_x").innerHTML = "(0.0000 ml)";
+      } else {
+        document.getElementById("ca_pre_emptive_x").innerHTML = "(0.0000 ml)";
+      }
+    }
+    
+ 
+   
+ 
+ </script>
 
 
 
@@ -724,33 +975,37 @@
 
     // When the user clicks on scoring done, close the modal and updates the score
     scorespan.onclick = function() {
+      
+      // document.getElementById("bu_x").innerHTML = "(" + score_weight.value * 0.0033 + " ml)";
+      // document.getElementById("ca_x").innerHTML = "(" + score_weight.value * 0.0033 + " ml)";
+      
       var i;
       score = 0;
-      for (i=0; i< one_symptoms.length; i++) {
+      for (i=0; i < one_symptoms.length; i++) {
         // window.alert(one_symptoms[i])
         if (table.querySelector("#"+one_symptoms[i]).checked) {
           score = score + 1;
         }
       }
-      for (i=0; i< three_symptoms.length; i++) {
+      for (i=0; i < three_symptoms.length; i++) {
         console.log(three_symptoms[i])
         if (table.querySelector("#"+three_symptoms[i]).checked) {
           score = score + 3;
         }
       }
-      for (i=0; i< four_symptoms.length; i++) {
+      for (i=0; i < four_symptoms.length; i++) {
         console.log(four_symptoms[i])
         if (table.querySelector("#"+four_symptoms[i]).checked) {
           score = score + 4;
         }
       }
-      for (i=0; i< six_symptoms.length; i++) {
+      for (i=0; i < six_symptoms.length; i++) {
         console.log(six_symptoms[i])
         if (table.querySelector("#"+six_symptoms[i]).checked) {
           score = score + 6;
         }
       }
-      for (i=0; i< ten_symptoms.length; i++) {
+      for (i=0; i < ten_symptoms.length; i++) {
         console.log(ten_symptoms[i])
         if (table.querySelector("#"+ten_symptoms[i]).checked) {
           score = score + 10;
@@ -765,7 +1020,7 @@
           }  
         }
       } 
-      if (score>=10) {
+      if (score >= 10) {
         com_score.required = true;
         window.alert("This mouse has a score higher or equal to 10: Euthanize it immediately.");
       } else if (score>=6) {
@@ -780,6 +1035,79 @@
       }
       scorebtn.value = score;
       table.style.display = "none";
+      
+      // activate/diactivate checkboxes 
+      if (score_weight.value > 0) {
+        // CA is always with BU
+        if (document.getElementById("bu") !== null) {
+          document.getElementById("bu").disabled = false;
+          document.getElementById("ca").disabled = false;
+        }
+        // ket is alrays with isoflurane
+        if (document.getElementById("ket_b") !== null) {
+          document.getElementById("ket_b").disabled = false;
+          document.getElementById("isoflurane_b").disabled = false;
+        }
+      } else {
+        if (document.getElementById("bu") !== null) {
+          document.getElementById("bu").disabled = true;
+          document.getElementById("ca").disabled = true;
+        }
+        if (document.getElementById("ket_b") !== null) {
+          document.getElementById("ket_b").disabled = true;
+          document.getElementById("isoflurane_b").disabled = true;
+        }
+      }
+
+      /// start (recalculate the injection amount after changing bodyweight) (for BU and CA) /// 
+      if (document.getElementById("bu") !== null) {
+        var bu_checkbox_btn = document.getElementById("bu")
+        var bu_checkbox_value = document.getElementById("bu").checked
+        if (bu_checkbox_value) {
+          if (score_weight.value > 0) {
+            var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+            document.getElementById("bu_x").innerHTML = "(" + dose_ml + " ml)";
+          }
+          else
+          document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+        } else {
+          document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+        }
+        
+        var ca_checkbox_btn = document.getElementById("ca")
+        var ca_checkbox_value = document.getElementById("ca").checked
+        if (ca_checkbox_value) {
+          if (score_weight.value > 0) {
+            var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+            document.getElementById("ca_x").innerHTML = "(" + dose_ml + " ml)";
+          }
+          else
+          document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+        } else {
+          document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+        }
+      }
+      /// end ///
+
+
+      /// start (recalculate the injection amount after changing bodyweight) (for Ketamine/Xylazin) [in Baseplating] /// 
+      if (document.getElementById("anesthetic_b") !== null) {
+        var ketamin_xylazin_btn = document.getElementById("ket_b")
+        var ketamin_xylazin_checked = document.getElementById("ket_b").checked
+        if (ketamin_xylazin_checked) {
+          if (score_weight.value > 0) {
+            var dose_ml = (score_weight.value * 0.01).toFixed(2)
+            document.getElementById("anesthetic_b").innerHTML = "(" + dose_ml + " ml)";
+          }
+          else
+          document.getElementById("anesthetic_b").innerHTML = "(0.00 ml)";
+        } else {
+          document.getElementById("bu_x").innerHTML = "(0.00 ml)";
+        }
+      }
+      /// end ///
+
+
     };
 
     if (scheduling) {
@@ -800,6 +1128,8 @@
     }
 
   </script>
+
+  
 
   {% if scoring_values %} 
   <script> 
@@ -837,7 +1167,6 @@
         </form>  
       </div>    
     {% endif %}
-
 </div> 
 
 {% if display %}

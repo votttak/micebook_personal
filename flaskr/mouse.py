@@ -134,8 +134,10 @@ def reload():
 def process(box):
     query = request.args.get('query')
     if box == 'id':
+        
         mice = Mice.query.filter(func.lower(Mice.irats_id).contains(query.lower()))
-        suggestions = [{'value': mouse.irats_id, 'data':mouse.irats_id} for mouse in mice]
+        suggestions = [{'value': mouse.irats_id, 'data':mouse.irats_id} for mouse in mice if not str(mouse.irats_id).startswith("Z-")]
+        
     if box == 'cage':
         mice = Mice.query.filter(Mice.cage.contains(query)).distinct(Mice.cage)
         suggestions = [{'value': mouse.cage, 'data':mouse.cage} for mouse in mice]

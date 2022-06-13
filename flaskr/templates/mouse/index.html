@@ -40,15 +40,17 @@
       }
       });
     </script>
-        <script>
-          $('#autocomplete2').autocomplete({
-           serviceUrl: '/search/cage',
-           dataType: 'json',
-           onSearchComplete: function (query, suggestions) {
-             console.log(query);
-           }
-           });
-         </script>
+
+    <script>
+      $('#autocomplete2').autocomplete({
+       serviceUrl: '/search/cage',
+       dataType: 'json',
+       onSearchComplete: function (query, suggestions) {
+         console.log(query);
+       }
+       });
+    </script>
+  
   </div>
 
   {% for mouse in todo_mice %}

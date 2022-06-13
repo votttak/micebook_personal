@@ -3,8 +3,13 @@ sample_exp = [['Injection Surgery', 'Implantation Surgery'], 'Protein Expression
 from .tables import Experiments, Experiment_actions, Mice, Procedures, Steps
 from sqlalchemy import desc
 
+print("---------------IN EXPERIMENT_TREES---------------")
+
 def next_step(procedure, steps):
-    last_step = Steps.query.filter(Steps.procedure_id==procedure.id).order_by(desc(Steps.id)).first()
+    print("FUNCTION: next_step")
+    print("STEPS")
+    print(steps)
+    last_step = Steps.query.filter(Steps.procedure_id == procedure.id).order_by(desc(Steps.id)).first()
     if not last_step:
         return steps[0]
     elif last_step in steps:
@@ -21,6 +26,7 @@ def next_step(procedure, steps):
 
 
 def next_procedure(id, last_action=None):
+    print("FUNCTION: next_procedure")
     mouse = Mice.query.filter(Mice.id==id).first()
     experiment = mouse.experiment
     if not last_action:
