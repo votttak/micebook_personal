@@ -70,7 +70,7 @@
             <label for="{{form['id']}}">{{form['name']}}:</label> 
             <!-- injection amount for Lidocain -->
             {% if form['name'] == "Lidocain" %}
-              <span id="{{form['id']}}_x">(0.000 ml)</span>
+              <span id="{{form['id']}}_x">(0.00 ml)</span>
               <span id="weight_for_lidocain" style="display: none;">{{form['weight']}}</span>
             {% endif %}
           </div>
@@ -167,7 +167,7 @@
             {% else %}
               <input type="checkbox" name="{{choice['id']}}" id="{{choice['id']}}" value="{{choice['value']}}" disabled>     
             {% endif %}   
-            <span id="{{choice['id']}}_x">(0.0000 ml)</span>
+            <span id="{{choice['id']}}_x">(0.00 ml)</span>
           {% endif %}
           {% endfor %}
           {% if form['name'] == "Pre-emptive Analgesia" %}
@@ -758,13 +758,13 @@
       var score_weight = document.getElementById("score_weight")
       if (bu_checkbox_value) {
         if (score_weight.value > 0) {
-          var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+          var dose_ml = (score_weight.value * 0.0033).toFixed(2)
           document.getElementById("bu_x").innerHTML = "(" + dose_ml + " ml)";
         }
         else
-          document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("bu_x").innerHTML = "(0.00 ml)";
       } else {
-        document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+        document.getElementById("bu_x").innerHTML = "(0.00 ml)";
       }
     }
     
@@ -775,13 +775,13 @@
       var score_weight = document.getElementById("score_weight")
       if (ca_checkbox_value) {
         if (score_weight.value > 0) {
-          var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+          var dose_ml = (score_weight.value * 0.0033).toFixed(2)
           document.getElementById("ca_x").innerHTML = "(" + dose_ml + " ml)";
         }
         else
-          document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("ca_x").innerHTML = "(0.00 ml)";
       } else {
-        document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+        document.getElementById("ca_x").innerHTML = "(0.00 ml)";
       }
     }
 
@@ -799,11 +799,11 @@
         console.log(yes_checked)
         console.log(weight_for_lidocain.innerHTML)
         if (weight_for_lidocain.innerHTML > 0) {
-          var dose_ml = (weight_for_lidocain.innerHTML * 0.005).toFixed(3)
+          var dose_ml = (weight_for_lidocain.innerHTML * 0.005).toFixed(2)
           document.getElementById("lido_x").innerHTML = "(" + dose_ml + " ml)";
         }
         else
-          document.getElementById("lido_x").innerHTML = "(0.000 ml)";
+          document.getElementById("lido_x").innerHTML = "(0.00 ml)";
       }
     }
 
@@ -813,7 +813,7 @@
     lido_no_btn.onclick = function() {
       var no_checked = document.getElementById("no").checked
       if (no_checked) {
-        document.getElementById("lido_x").innerHTML = "(0.000 ml)";
+        document.getElementById("lido_x").innerHTML = "(0.00 ml)";
       }
     }
  </script> 
@@ -899,13 +899,13 @@
       console.log(weight_from_previous_step.innerHTML)
       if (bu_checkbox_value) {
         if (weight_from_previous_step.innerHTML > 0) {
-          var dose_ml = (weight_from_previous_step.innerHTML * 0.0033).toFixed(4)
+          var dose_ml = (weight_from_previous_step.innerHTML * 0.0033).toFixed(2)
           document.getElementById("bu_pre_emptive_x").innerHTML = "(" + dose_ml + " ml)";
         }
         else
-          document.getElementById("bu_pre_emptive_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("bu_pre_emptive_x").innerHTML = "(0.00 ml)";
       } else {
-        document.getElementById("bu_pre_emptive_x").innerHTML = "(0.0000 ml)";
+        document.getElementById("bu_pre_emptive_x").innerHTML = "(0.00 ml)";
       }
     }
 
@@ -919,13 +919,13 @@
       console.log(weight_from_previous_step.innerHTML)
       if (ca_checkbox_value) {
         if (weight_from_previous_step.innerHTML > 0) {
-          var dose_ml = (weight_from_previous_step.innerHTML * 0.0033).toFixed(4)
+          var dose_ml = (weight_from_previous_step.innerHTML * 0.0033).toFixed(2)
           document.getElementById("ca_pre_emptive_x").innerHTML = "(" + dose_ml + " ml)";
         }
         else
-          document.getElementById("ca_pre_emptive_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("ca_pre_emptive_x").innerHTML = "(0.00 ml)";
       } else {
-        document.getElementById("ca_pre_emptive_x").innerHTML = "(0.0000 ml)";
+        document.getElementById("ca_pre_emptive_x").innerHTML = "(0.00 ml)";
       }
     }
     
@@ -1065,26 +1065,26 @@
         var bu_checkbox_value = document.getElementById("bu").checked
         if (bu_checkbox_value) {
           if (score_weight.value > 0) {
-            var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+            var dose_ml = (score_weight.value * 0.0033).toFixed(2)
             document.getElementById("bu_x").innerHTML = "(" + dose_ml + " ml)";
           }
           else
-          document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("bu_x").innerHTML = "(0.00 ml)";
         } else {
-          document.getElementById("bu_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("bu_x").innerHTML = "(0.00 ml)";
         }
         
         var ca_checkbox_btn = document.getElementById("ca")
         var ca_checkbox_value = document.getElementById("ca").checked
         if (ca_checkbox_value) {
           if (score_weight.value > 0) {
-            var dose_ml = (score_weight.value * 0.0033).toFixed(4)
+            var dose_ml = (score_weight.value * 0.0033).toFixed(2)
             document.getElementById("ca_x").innerHTML = "(" + dose_ml + " ml)";
           }
           else
-          document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("ca_x").innerHTML = "(0.00 ml)";
         } else {
-          document.getElementById("ca_x").innerHTML = "(0.0000 ml)";
+          document.getElementById("ca_x").innerHTML = "(0.00 ml)";
         }
       }
       /// end ///

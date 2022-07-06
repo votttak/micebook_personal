@@ -46,6 +46,7 @@ class Mice(db.Model):
     investigator = db.Column(db.String())
     severity = db.Column(db.String())
     euthanized = db.Column(db.Boolean(), default=False)
+    room_id = db.Column(db.String(), default="")
 
     def __repr__(self):
         return f"<Mouse {self.id}>"

@@ -168,35 +168,18 @@ def go_back(id): ### Change to extract last entry and go directly to experiment 
 @bp.route('/get_last_weight/<int:mouse_id>', methods=('GET', 'POST'))
 @login_required
 def get_last_weight(mouse_id):
-    # print("FUNCTION: get_last_weight")
-    # print("--------------mouse_id--------------")
-    # print(mouse_id)   # INTEGER
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
-    # print("ACTIONS")
-    # print(actions)
-    # print("db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).all()")
-    # print(db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).all())
-    # print("db.session.query(Entries).filter(Entries.step_id.in_(actions)")
-    # print(db.session.query(Entries).filter(Entries.step_id.in_(actions)).all())
     weight_entry = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.reference_weight).order_by(desc(Entries.id)).first()
-    # print("weight_entry.content")
-    # print("-----------HERE_HERE_start------------") 
-    # print(weight_entry.reference_weight) 
-    # print("-----------HERE_HERE_end------------") 
      
     if weight_entry:
-        # print("PONIN_IF_111111111111111111111111111111111111111111111111111111111111111111111")
         if weight_entry.content:
             weight = float(weight_entry.content)
-            # weight_entry.reference_weight = False
-            # db.session.commit()
             return jsonify({"lastweight":weight})
         else:
             db.session.delete(weight_entry)
             db.session.commit()
             return get_last_weight(mouse_id)
     else:
-        # print("PONIN_ELSE_1111111111111111111111111111111111111111111111111111111111111111111")
         return jsonify({"lastweight":None})
 
 
@@ -263,29 +246,10 @@ def get_last_weight_for_drug_dosierung(mouse_id):
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
     # weights = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.name == "Bodyweight (grams)").order_by(desc(Entries.id)).all()
     weight = db.session.query(Entries).filter(Entries.step_id.in_(actions), Entries.name == "Bodyweight (grams)").order_by(desc(Entries.id)).first()
-    print("--------------------------------------------WEIGHTS--------------------------------------------")
     if weight:
         print(weight.name)
         print(weight.content)
-    # for entry in weights:
-    #      print("КОНТЕНТ")
-    #      print(entry.content)
-    #      print("NAME")
-    #      print(entry.name)
     
-    
-    # if weight_entry:
-    #     if weight_entry.content:
-
-    #         return float(weight_entry.content)
-    #     else:
-    #         db.session.delete(weight_entry)
-    #         db.session.commit()
-    #         return get_last_ref_weight(mouse_id)
-    # else:
-    #     return "HERE_HERE_2"
-    #     return None
-
 
 
 @bp.route('/<int:id>/update_severity_to_next', methods=('GET', 'POST'))
@@ -302,6 +266,7 @@ def update_severity_to_index(id):
 
 
 def _update_severity(id, next=False):
+    print("FUNCTION:_updata_severity")
     mouse = get_mouse(id)
     severity= mouse.severity
 
@@ -312,7 +277,7 @@ def _update_severity(id, next=False):
             db.session.commit()
             written = write_advance_transfer(id, severity=new_severity, complete=irats_update)
             if not written:
-                flash("Mouse couldn't be found on the PDA interface and thus information have not been updated there. Please verify the mouse ID on Irats and Reload Mice. The update of the mouse severity needs to be done manually.")
+                flash("Mouse couldn't be found on the PDA interface and thus information have not been updated theReload Mice fLoad_Miceom Iratsre. Please verify the mouse ID on Irats and Reload Mice. The update of the mouse severity needs to be done manually.")
 
         if next:
             return redirect(url_for('experiments.start_experiment', id=id))
@@ -324,6 +289,7 @@ def _update_severity(id, next=False):
 
 
 def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = None, severity=False):
+
 
     
     
@@ -441,10 +407,8 @@ def choose_experiment(id):
         experiment_id = int(request.form['experiment'])
         experiment = Experiments.query.filter(Experiments.id==experiment_id).first()
         project = Projects.query.filter(Projects.id==experiment.project_id).first()
-        print(project)
         licence = Licences.query.filter(Licences.id==project.licence_id).first()
         project_name = project.name.split(licence.number)[-1].split("-")[-1]
-        print(project_name)
         written = write_advance_transfer(id, licence=licence.number, project=project_name, status='In experiment', severity='0', complete=irats_update)
         if not written:
             flash("Mouse couldn't be found on the PDA interface and thus information have not been updated there. Please verify the mouse ID on Irats and Reload Mice. The update of the mouse project needs to be done manually.")
@@ -479,17 +443,13 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
     injection = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
     
     
-    print("HERE_HERE_HERE_HERE_HERE____HERE_HERE_HERE_HERE_HERE")
-    print("current_step.name")
-    print(current_step.name)
-    print("steps_names")
-    print(steps_names)
+   
    
     
         
-    # работаем здесь    
-    print("-----------------ПЕРЕД--------------------------")
-    get_last_weight_for_drug_dosierung(mouse.id)
+  
+
+    # get_last_weight_for_drug_dosierung(mouse.id)
     
     if current_step.name == steps_names[0]:
         pre_surgical_score_forms = [{'name':"Score", 'id':"score", 'type':"int"}, {'name':"Scoring hour", 'id':"score_time", 'type':"datetime-local", 'hours_precision':True, 'next_entry_in':timedelta(days=7)}]
@@ -668,15 +628,15 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
                     setup_reminder.append({'name':entry.name, 'value':interprete(entry)})
                 print(setup_reminder)
 
-        if "".join(CoordinateVirus1)!="":
+        if "".join(CoordinateVirus1) != "":
             setup_reminder.append({'name':"Coordinates (AP/ML/DV) Virus 1", 'value':"/".join(CoordinateVirus1)})
-        if "".join(CoordinateVirus2)!="":
+        if "".join(CoordinateVirus2) != "":
             setup_reminder.append({'name':"Coordinates (AP/ML/DV) Virus 2", 'value':"/".join(CoordinateVirus2)})
 
         
 
-        surgery_protocol[0]['min']=min_surg_time
-        surgery_protocol[0]['max']=max_surg_time
+        surgery_protocol[0]['min'] = min_surg_time
+        surgery_protocol[0]['max'] = max_surg_time
 
 
 
@@ -684,6 +644,7 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             
             next_step_args = {'name': steps_names[3]+'_'+InjS_Scoring[0], 'mouse_id':id, 'procedure_id':injection.id}
             return readout(request.form, current_step, surgery_protocol, next_step_args, severity=True)
+            # return readout(severity=True)
 
         
 
@@ -834,9 +795,6 @@ def _implantation_surgery(id, step_id, buffer_only=False): #experiment
         Coordinate = [""]*3
         for entry in setup_entries:
             if entry.name=="Time":
-                ttt = interprete(entry)
-                print("TIME")
-                print(ttt)
                 min_surg_time = interprete(entry) + timedelta(minutes=20)
                 max_surg_time = interprete(entry) + timedelta(hours=4)
                 early_surg = min_surg_time.strftime("%I:%M%p")
@@ -936,9 +894,7 @@ def _implantation_surgery(id, step_id, buffer_only=False): #experiment
 
         return display(args, reload_step=current_step, buffer=buffer_only)
 
-# Vadim
-def _surgery():
-    print("_surgery function")
+
 
 protein_expression_check_steps = ['Weekly Expression Check']
 @bp.route('/<int:id>/Protein_Expression_Check/<int:step_id>', methods=('GET', 'POST')) #/<int:id>/<experiment>/
@@ -1066,7 +1022,6 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
     scheduling_operation = scheduling_operations[type]
 
     current_step = Steps.query.filter(Steps.id==step_id).first()
-    print(current_step.name)
     procedure = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
 
 
@@ -1173,7 +1128,6 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
                 checks = db.session.query(Steps.id).filter(Steps.mouse_id==id, Steps.name.contains(step_name), Steps.procedure_id==procedure.id, Steps.id<current_step.id).subquery()
                 introduction_time = interprete(db.session.query(Entries).filter(Entries.step_id.in_(checks),  Entries.name==scheduling_operation+' time').order_by(desc(Entries.id)).first())
                 info = scheduling_operation+" at " + introduction_time.strftime("%I:%M%p") + " (+/- 1 hour)"
-                print(info)
                 scheduling_initialization_forms.remove({'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)})
                 scheduling_initialization_forms = [{'name':scheduling_operation+" time", 'id':"introduction_time_info", 'type':"info", 'value':info}] + scheduling_initialization_forms
 
@@ -1365,7 +1319,6 @@ def _non_scheduling_experiment(id, step_id, buffer_only=False):
     procedure = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
 
     if current_step.name==non_scheduling_experiment_steps[0]:
-        print("NEW")
         current_step.name+=" 1"
         db.session.commit()
         return redirect(url_for('experiments.update_severity_to_next',id=id))
@@ -1414,7 +1367,7 @@ def _euthanasia(id, step_id, buffer_only=False):
         procedure.finished = True
         mouse.euthanized = True
         db.session.commit()
-        return readout(request.form, current_step, euthanasia_forms)
+        return readout(request.form, current_step, euthanasia_forms, severity=True)
 
     args = {'mouse':mouse, 'page_name':"Euthanasia", 'forms':euthanasia_forms, 'not_euthanasia':True, 'comment_required':True, 'scoring':True, 'no_back':True}
     return display(args, reload_step=current_step, buffer=buffer_only)  
@@ -1496,18 +1449,13 @@ for procedure in Procedures_names:
 
 for procedure in Procedures_names:
     steps_list_name = minimize(procedure)+'_steps'
-    # print("HERE: ", steps_list_name)
-    # print("HERE_HERE: ", locals()[steps_list_name])
     Steps_names[procedure] = locals()[steps_list_name]
 
 
 
 def set_reference_weight_to_false(mouse_id):
-    print("FUNCTION: set_reference_weight_to_false")
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
-    weight_entry = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.reference_weight).order_by(desc(Entries.id)).first()
-    print("--------weight_entry.content---------") 
-    # print(weight_entry.content) 
+    weight_entry = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.reference_weight).order_by(desc(Entries.id)).first() 
     if weight_entry:
         if weight_entry.content:
             weight_entry.reference_weight = False
@@ -1526,12 +1474,8 @@ def set_reference_weight_to_false(mouse_id):
 @bp.route('/<int:id>/start_experiment', methods=('GET', 'POST')) #/<int:id>/<experiment>/
 @login_required
 def start_experiment(id): 
-#     return _start_experiment(id)
 
-# def _start_experiment(id): #experiment
     mouse = get_mouse(id)
-    print("MOUSE_ID")
-    print(mouse)      # AISI: sql entry
     def get_template(action):
         template_name = ""
         for a in action.lower().split(" "):
@@ -1583,15 +1527,12 @@ def select_next_procedure(id, procedure_name):
 @bp.route('/<int:id>/design_experiment', methods=('GET', 'POST'))
 @login_required
 def design_experiment(id):
-    print("FUNCTION: design_experiment")
     mouse_id = id
     user_id = session.get('user_id')
-    print("before IF")
+    
     if request.method == 'POST':
-        print("in IF")
+    
         forms = request.form.to_dict(flat=True)
-        print("------FORMS------")
-        print(forms)
         project = Projects.query.filter(Projects.name==forms.pop('project'), Projects.user_id==user_id).order_by(desc(Projects.id)).first()
         experiment = {'name':forms.pop('name'), 'user_id':user_id, 'project_id':project.id}
         experiment = Experiments(**experiment)

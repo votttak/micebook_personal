@@ -10,12 +10,55 @@
   <div>
     
     
-  <form method="POST">
+  <!--<form method="POST">
     <div>
     <input type="text" name="irats_id" id="autocomplete1" required type="text" value="" placeholder="Search Mouse ID">
-    <input type="submit" value="Search by Mouse">
+    <input type="submit" id="search_by_mouse_btn" value="Search by Mouse">
     </div>
-  </form>
+  </form> -->
+
+  <button type="button" id="search-by-mouse-btn">Search by Mouse</button>
+
+  <div id="search-by-mouse-window" class="modal">
+    <div class="modal-content">
+      <form method="POST">
+
+        {% for room_id in unique_room_ids %}
+          <div>
+            <label for="{{room_id}}"">{{room_id}}</label>
+            <input type="checkbox" class="room-id-checkbox" name="{{room_id}}" checked value="123">
+          </div>
+        {% endfor %}
+
+        <label for="irats_id">Mouse Id</label>
+        <input type="text" name="irats_id" id="autocomplete1" required placeholder="Mouse ID">
+        
+        <input type="submit" value="Search">
+      </form>
+
+      <button type="button" id="search-by-mouse-window-close-btn">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // hide the search by mouse window at astart
+    var search_by_mouse_window = document.getElementById("search-by-mouse-window");
+    search_by_mouse_window.style.display = 'none';
+
+    // show the search by mouse window on click
+    var search_by_mouse_btn = document.getElementById("search-by-mouse-btn");
+    search_by_mouse_btn.onclick = function() 
+    {
+      search_by_mouse_window.style.display = 'block';
+    }
+
+    // hide the search by mouse window on close btn
+    var close_search_by_mouse_window = document.getElementById("search-by-mouse-window-close-btn");
+    close_search_by_mouse_window.onclick = function() 
+    {
+      search_by_mouse_window.style.display = 'none';
+    }
+  </script>
 
 
   <form method="POST">
@@ -30,15 +73,58 @@
       <input type="submit" value="Reload Mice from Irats (might take a few minutes)">
     </form> 
   </div>
-
+  
     <script>
-     $('#autocomplete1').autocomplete({
-      serviceUrl: '/search/id',
-      dataType: 'json',
-      onSearchComplete: function (query, suggestions) {
-        console.log(query);
+      function get_room_filter() {
+        var checkboxes = document.getElementsByClassName('room-id-checkbox')
+
+        var result = "";
+
+        for (let i = 0; i < checkboxes.length; ++i) {
+          if (checkboxes[i].checked) {
+            result += checkboxes[i].name + '|';
+          } 
+        }
+
+        if (result.length > 0) {
+          result = result.substring(0, result.length - 1);
+        }
+
+        console.log("rooms filter!" + result);
+
+        return result;
       }
-      });
+
+      function rebuild_autocomplete() {
+          $('#autocomplete1').autocomplete({
+        serviceUrl: '/search/id',
+        dataType: 'json',
+        onSearchStart: function(params) {
+          console.log("Search start");
+          console.log(params);
+        },
+        params: {
+          'rooms_filter' : get_room_filter(),
+        },
+        onSearchComplete: function (query, suggestions) {
+         // console.log(query);
+         // console.log(suggestions);
+        }
+        });
+      }
+    setTimeout(function() {
+        rebuild_autocomplete();
+
+        var checkboxes = document.getElementsByClassName('room-id-checkbox')
+
+        var result = "";
+
+        for (let i = 0; i < checkboxes.length; ++i) {
+          checkboxes[i].onchange = function(value) {
+            rebuild_autocomplete();
+          }
+        }
+    }, 5000);
     </script>
 
     <script>

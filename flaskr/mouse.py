@@ -41,19 +41,6 @@ def time_display(delta):
 @bp.route('/', methods=('GET', 'POST'))
 @login_required
 def index(show_all=False):
-    if platform=="win32":
-        animal_csv_filename = os.path.join(Path().resolve().parents[0], "configurableAnimal.csv")
-    else:
-        animal_csv_filename = "/var/www/mfabre/webapp/configurableAnimal.csv"
-
-    try:
-        Load_Mice(animal_csv_filename, db, Mice)
-    except:
-        flash('ConfigureAnimal.csv file is erroneous. Please reload mice from irats and retry or ask the person in charge for manual check')
-
-    todo_mice_sql = """SELECT *, TO_TIMESTAMP(step.content, 'YYYY-MM-DD"T"HH24:MI')+ step.next_entry_in AS next_operation FROM mice JOIN (SELECT DISTINCT ON (mouse_id) *FROM ( SELECT *FROM steps JOIN      (SELECT  *FROM      entries WHERE  id in (SELECT MAX(id) FROM entries WHERE next_entry_in IS NOT NULL GROUP BY step_id)) e ON (e.step_id = steps.id) ) AS lastentries ORDER BY mouse_id, step_id DESC) step ON (mice.id=step.mouse_id) WHERE mice.id not in (SELECT mouse_id FROM steps WHERE name = 'Euthanasia') """
-    order_by_sql =    """ ORDER BY next_operation;"""
-
     def add_next_action(row):
         mice = []
         for mouse in row:
@@ -76,11 +63,16 @@ def index(show_all=False):
             mouse['next_operation'], mouse['color'] = time_display(mouse['next_operation'].date() - datetime.today().date())
             mice.append(mouse)
         return mice
-            
+
+    todo_mice_sql = """SELECT *, TO_TIMESTAMP(step.content, 'YYYY-MM-DD"T"HH24:MI')+ step.next_entry_in AS next_operation FROM mice JOIN (SELECT DISTINCT ON (mouse_id) *FROM ( SELECT *FROM steps JOIN      (SELECT  *FROM      entries WHERE  id in (SELECT MAX(id) FROM entries WHERE next_entry_in IS NOT NULL GROUP BY step_id)) e ON (e.step_id = steps.id) ) AS lastentries ORDER BY mouse_id, step_id DESC) step ON (mice.id=step.mouse_id) WHERE mice.id not in (SELECT mouse_id FROM steps WHERE name = 'Euthanasia') """
+    order_by_sql =    """ ORDER BY next_operation;"""
 
     if request.method=='POST':
+        print(f"POST form [{request.form}]")
         if 'irats_id' in request.form:
             irats_id = request.form['irats_id']
+            sql_request = text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)
+            print(f"SQL REQUEST\n{sql_request}")
             todo_mice = db.engine.execute(text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)).all()
             ids = [mouse.mouse_id for mouse in todo_mice]
             todo_mice = add_next_action(todo_mice)
@@ -112,10 +104,19 @@ def index(show_all=False):
         todo_mice = add_next_action(todo_mice)
         licenced_mice = Mice.query.filter(Mice.experiment!=None, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True), Mice.investigator==user.full_name).order_by(desc(Mice.id))
         euthanized_mice = []
-        all_mice = [] 
+        all_mice = []
 
+    unique_room_ids = set()
+    mouses = Mice.query.all()
+    for mouse in mouses:
+        if mouse.room_id is None:
+            unique_room_ids.add("Empty")
+        else:
+            unique_room_ids.add(mouse.room_id)
 
-    return render_template('mouse/index.html', todo_mice=todo_mice, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date())
+    unique_room_ids = sorted(unique_room_ids)
+
+    return render_template('mouse/index.html', todo_mice=todo_mice, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
 
 @bp.route("/full_index", methods=('GET', 'POST'))
 @login_required
@@ -128,16 +129,51 @@ def reload():
     # download_user_projects(3)
     # download_licences()
     irats_fetch()
+
+    # db updating from previously loaded csv file (irats_fetch() method loads csv file) ########################
+    if platform=="win32":
+        animal_csv_filename = os.path.join(Path().resolve().parents[0], "configurableAnimal.csv")
+    else:
+        animal_csv_filename = "/var/www/mfabre/webapp/configurableAnimal.csv"
+
+    try:
+        Load_Mice(animal_csv_filename, db, Mice)
+    except:
+        flash('ConfigureAnimal.csv file is erroneous. Please reload mice from irats and retry or ask the person in charge for manual check')
+     ################################
+
     return redirect(url_for('mouse.index'))
 
 @bp.route("/search/<string:box>")
 def process(box):
+    print(f"request + {request}")
     query = request.args.get('query')
     if box == 'id':
-        
-        mice = Mice.query.filter(func.lower(Mice.irats_id).contains(query.lower()))
+        if query.isspace():
+            mice = Mice.query.all()
+        else:
+            mice = Mice.query.filter(func.lower(Mice.irats_id).contains(query.lower())).all()
+
+        rooms_to_include = parse_rooms_filter(request.args.get('rooms_filter'))
+
+        print(f"rooms_to_include {rooms_to_include}")
+        print(f"befoter filtering mouses count {len(mice)}")
+
+        if len(rooms_to_include) > 0:
+            filtered_by_room_mices = []
+
+            none_included = "Empty" in rooms_to_include
+
+            for m in mice:
+                if m.room_id in rooms_to_include:
+                    filtered_by_room_mices.append(m)
+                elif m.room_id is None and none_included:
+                    filtered_by_room_mices.append(m)
+            mice = filtered_by_room_mices
+
+        print(f"after filtering mouses count {len(mice)}")
+
         suggestions = [{'value': mouse.irats_id, 'data':mouse.irats_id} for mouse in mice if not str(mouse.irats_id).startswith("Z-")]
-        
     if box == 'cage':
         mice = Mice.query.filter(Mice.cage.contains(query)).distinct(Mice.cage)
         suggestions = [{'value': mouse.cage, 'data':mouse.cage} for mouse in mice]
@@ -156,6 +192,12 @@ def process(box):
         coordinates = Coordinates.query.filter(Coordinates.name.contains(query))
         suggestions = [{'value': cor.name, 'data':cor.name} for cor in coordinates]
     return jsonify({"suggestions":suggestions})
+
+def parse_rooms_filter(string_to_parse):
+    if len(string_to_parse) == 0:
+        return []
+
+    return string_to_parse.split('|')
 
 def get_mouse(id):
     mouse = Mice.query.filter(Mice.id==id).first()

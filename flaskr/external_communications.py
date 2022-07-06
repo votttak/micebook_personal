@@ -35,6 +35,7 @@ if platform == "linux":
 
 ## ??? ##
 def interprete(entry, display_mode=False, type=None):
+    print("FUNCTION: interprete")
     if not entry or entry.content=="":
         return None
     if not type:
@@ -69,6 +70,7 @@ def interprete(entry, display_mode=False, type=None):
         return(entry.content)
 
 def check_irats_credentials(username, password):
+    print("FUNCTION: check_irats_credentials")
     run_headless = False # do not show the browser window
 
     if platform == "linux":
@@ -132,6 +134,7 @@ def check_irats_credentials(username, password):
         return None
 
 def goto_iratsmain(username = 'roman', password = 'megu0210', chrome_options=None):
+    print("FUNCTION: goto_iratsmain")
     run_headless = False # do not show the browser window
 
     if platform == "linux":
@@ -172,9 +175,8 @@ def goto_iratsmain(username = 'roman', password = 'megu0210', chrome_options=Non
     return(driver)
 
 def irats_fetch():
-
+    # print("FUNCTION: irats_fetch()")
     chrome_options = Options()
-
     if platform=="win32":
         download_dir = Path().resolve().parents[0]
     else:
@@ -185,6 +187,9 @@ def irats_fetch():
         download_dir = str(download_dir).replace("/", "\\")
     else:
         download_dir = str(download_dir)
+
+
+    
 
     # experimental options
     prefs = {'download.default_directory' : download_dir}
@@ -202,6 +207,7 @@ def irats_fetch():
 
     search_button = driver.find_element_by_id("animalSearchButton")
     search_button.click()
+
     # now wait until the search has completed
     while search_button.is_enabled() is False:
         time.sleep(0.1)
@@ -211,7 +217,7 @@ def irats_fetch():
     # check if a file exists already and delete it
     if os.path.exists(path):
         os.remove(os.path.join(download_dir, csv_filename))
-        print('Deleted existing file %s' % (os.path.join(download_dir, csv_filename)))
+        # print('Deleted existing file %s' % (os.path.join(download_dir, csv_filename)))
 
     # download CSV file
     driver.execute_script("createConfigurableAnimalCSVReportFunc('/irats/report/configurableAnimal.csv');")
@@ -234,6 +240,7 @@ def irats_fetch():
     driver.close()
 
 def find_mouse_pda(id):
+    print("FUNCTION: find_mouse_pda")
     mouse = Mice.query.filter(Mice.id==id).first()
     irats_id = mouse.irats_id
     cage = mouse.cage
@@ -281,7 +288,7 @@ def find_mouse_pda(id):
     return driver
 
 def read_severity(id):
-
+    print("FUNCTION: read_severity")
     driver = find_mouse_pda(id)
 
     if not driver:
@@ -306,12 +313,13 @@ def read_severity(id):
     return severity
 
 def write_advance_transfer(id, licence=None, project=None, severity=None, status=None, complete=True):
-
+    print("FUNCTION: write_advance_transfer")
     if complete:
         driver = find_mouse_pda(id)
 
         if not driver:
             return None
+        
 
         new_task_select = Select(driver.find_element_by_name("orderType"))
         new_task_select.select_by_visible_text("Advanced Transfer")
@@ -355,9 +363,11 @@ def write_advance_transfer(id, licence=None, project=None, severity=None, status
 
 
 def note_euthanasia(id, sever):
+    print("FUNCTION: note_euthanasia")
     return None
 
 def download_licences():
+    print("FUNCTION: download_licences")
     driver = goto_iratsmain()
 
     driver.find_element_by_link_text("Licences").click()
@@ -373,7 +383,6 @@ def download_licences():
     line = driver.find_element_by_xpath(result_table_path+"/tr[2]")
     Licences_list = []
     i=2
-    print(driver.find_elements_by_xpath(result_table_path+"/tr"))
     rows = len(driver.find_elements_by_xpath(result_table_path+"/tr"))
     for i in range(2,rows+1):
         licence_dict={}
@@ -402,6 +411,7 @@ def download_licences():
     driver.close()
 
 def download_user_projects(user_id):
+    print("FUNCTION: download_user_projects")
     driver = goto_iratsmain()
 
     driver.find_element_by_link_text("Licences").click()
@@ -423,10 +433,10 @@ def download_user_projects(user_id):
     # for option in select_options:
     #     investigator = option.get_attribute('text').lower()
     #     if all([(split_user_name[i] in investigator) for i in range(len(split_user_name))]):
-    #         print(investigator)
+    #     
     #         value = option.get_attribute('value')
     #         break
-    # print(value)
+    # 
     # user_select.select_by_value(value)
 
     select_path = "//div[contains(@class,'searchable-select-item')"
@@ -469,6 +479,7 @@ def download_user_projects(user_id):
     driver.close()
 
 def download_licences_and_projects(user_id):
+    print("FUNCTION: download_licences_and_projects")
     driver = goto_iratsmain()
 
     driver.find_element_by_link_text("Licences").click()
@@ -484,7 +495,7 @@ def download_licences_and_projects(user_id):
     line = driver.find_element_by_xpath(result_table_path+"/tr[2]")
     Licences_list = []
     i=2
-    print(driver.find_elements_by_xpath(result_table_path+"/tr"))
+   
     rows = len(driver.find_elements_by_xpath(result_table_path+"/tr"))
     for i in range(2,rows+1):
         licence_dict={}
@@ -514,52 +525,39 @@ def download_licences_and_projects(user_id):
     driver.find_element_by_link_text("Projects").click()
     time.sleep(2)
     
-    print("in download_licences_and_projects: 1")
+  
     user = Users.query.filter(Users.id==user_id).first()
-    print(user)
-    print("in download_licences_and_projects: 2")
+
 
     user_search = driver.find_element_by_xpath("//*[.='User: ']/following-sibling::td/div[@class='searchable-select']/div[@class='searchable-select-holder']")
-    print(user_search)
+ 
     user_search.click()
     user_input = driver.find_element_by_xpath("//*[.='User: ']/following-sibling::td/div[@class='searchable-select']/div[@class='searchable-select-dropdown']/input") #[@class='searchable-select-input')
     user_input.send_keys(user.full_name.split(" ")[0])
     time.sleep(2)
-    print("in download_licences_and_projects: 3")
+  
     	
     split_user_name = user.full_name.split(" ")
-    print("split_user_name")
-    print(split_user_name)
+
     #split_user_name = ['Boehringer Roman']
-    print(split_user_name)
+
     #select_path = "//div[contains(@class,'searchable-select-item')"
     select_path = "//*[.='User: ']/following-sibling::td/div[@class='searchable-select']/div[@class='searchable-select-dropdown']/div[@class='searchable-scroll']/div[@class='searchable-select-items']/div[contains(@class,'searchable-select-item')"
-    print("select_path")
-    print(select_path)
-    full_select_path = select_path + "".join([" and contains(text(),'"+name_part+"')" for name_part in split_user_name]) + "]"
-    print("full_select_path")
-    print(full_select_path)
-    user_select = driver.find_element_by_xpath(full_select_path)
-    print("user_select")
-    print(user_select)
-    print("in download_licences_and_projects: 4")
-    time.sleep(1)
-    #driver.implicitly_wait(10)
-    #user_select.click()
 
-    # from selenium.webdriver.common.keys import Keys
-    # element = driver.send_keys(Keys.RETURN)
-    # element.submit()
+    full_select_path = select_path + "".join([" and contains(text(),'"+name_part+"')" for name_part in split_user_name]) + "]"
+
+    user_select = driver.find_element_by_xpath(full_select_path)
+
+    time.sleep(1)
 
     user_select.click()
-    print("in download_licences_and_projects: 5")
 
 
     licence_search_form = driver.find_element_by_name("searchForm")
     licence_search_form.submit()
     time.sleep(1)
 
-    print("in download_licences_and_projects: 6")
+   
 
     result_table_path = "//table[@class='taulu']/tbody"
     Projects_list = []
@@ -582,16 +580,17 @@ def download_licences_and_projects(user_id):
             old_project.description = project.description
             old_project.licence_id = project.licence_id
 
-    print("in download_licences_and_projects: 7")
+ 
     db.session.commit()
 
     driver.find_element_by_link_text("Log out").click()
 
     driver.close()
-    print("in download_licences_and_projects: 8")
+   
 
 
 def Load_Viruses(file_name, db, Viruses, update=False):
+    print("FUNCTION: load_viruses")
     with open(file_name) as csv_file:
         data = reader(csv_file, delimiter=';')
 
@@ -625,20 +624,27 @@ def Load_Viruses(file_name, db, Viruses, update=False):
         db.session.commit()
 
 def hasNumber(inputString):
+    # print("FUNCTION: hasNumber")
     return any(char.isdigit() for char in inputString)
 
 def hasLetter(inputString):
+    # print("FUNCTION: hasLetter")
     return any(char.isalpha() for char in inputString)
 
 def hasNumberANDLetter(inputString):
+    # print("FUNCTION: hasNumberANDLetter")
     return hasNumber(inputString) and hasLetter(inputString)
 
+import pandas as pd
 def Load_Mice(file_name, db, Mice, update=True):
+    print("FUNCTION: Load_Mice")
+    
+    # print(pd.read_csv(file_name))
     with open(file_name, encoding='latin-1') as csv_file:
+        # print(csv_file)
         data = reader(csv_file, delimiter=';')
 
-
-        columns = [['System ID','system_id'], ['Animal ID', 'irats_id'], ['Project','licence'], ['Cage','cage'], ['Strain','strain'], ['Genotype','genotype'], ['Gender','gender'], ['Date of birth','birthdate'], ['Status','status'], ['Investigator','investigator']]
+        columns = [['System ID','system_id'], ['Animal ID', 'irats_id'], ['Project','licence'], ['Cage','cage'], ['Strain','strain'], ['Genotype','genotype'], ['Gender','gender'], ['Date of birth','birthdate'], ['Status','status'], ['Investigator','investigator'], ['Room','room_id']]
         present_columns = []
         for row in data:
             if 'Animal ID' in row:
@@ -646,14 +652,17 @@ def Load_Mice(file_name, db, Mice, update=True):
                     if column[0] in row:
                         present_columns.append(column + [row.index(column[0])])
                 break
-
+        print(present_columns)
         i = 0
         for row in data:
             i+=1
             mouse = Mice.query.filter(Mice.system_id == row[present_columns[0][2]]).first()
+            
             if not mouse:
+            
                 args = {}
                 for column in present_columns:
+            
                     args[column[1]] = row[column[2]]
                 if args['irats_id'] =="" or not hasNumberANDLetter(args['irats_id']):
                     args['irats_id'] = args['system_id']
@@ -666,6 +675,7 @@ def Load_Mice(file_name, db, Mice, update=True):
                 if args['irats_id'] =="" or not hasNumberANDLetter(args['irats_id']):
                     args['irats_id'] = args['system_id']
                 #mouse.update(args)
+                print(args)
                 db.session.query(Mice).filter(Mice.system_id == row[present_columns[0][2]]).update(args)
         db.session.commit()
 
