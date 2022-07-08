@@ -635,7 +635,7 @@ def hasNumberANDLetter(inputString):
     # print("FUNCTION: hasNumberANDLetter")
     return hasNumber(inputString) and hasLetter(inputString)
 
-import pandas as pd
+
 def Load_Mice(file_name, db, Mice, update=True):
     print("FUNCTION: Load_Mice")
     

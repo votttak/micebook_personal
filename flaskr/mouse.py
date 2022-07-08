@@ -107,11 +107,17 @@ def index(show_all=False):
         all_mice = []
 
     unique_room_ids = set()
+    rooms_to_exclude = ['WAF F114 (OHB)', 'WAF G141 (EXP)', 'Y55F33']
     mouses = Mice.query.all()
     for mouse in mouses:
         if mouse.room_id is None:
             unique_room_ids.add("Empty")
         else:
+            print(mouse.room_id)
+            if mouse.room_id in rooms_to_exclude:
+                print(1)
+                continue
+            print(2)
             unique_room_ids.add(mouse.room_id)
 
     unique_room_ids = sorted(unique_room_ids)
