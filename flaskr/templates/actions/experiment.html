@@ -54,7 +54,7 @@
     </div>
   {% endif %}
 
-  
+
 
   <form method="post" id="entries" class="forms"> 
     <div>
@@ -151,7 +151,7 @@
         {% if form['name'] == "Analgesia" %}
           <script>
             // window.alert("REMIDER: don't forget checkboxes for Analgesia!");
-            window.alert("REMIDER: Analgesia must matche during the first 3 days of post-surgical scoring!");
+            // window.alert("REMIDER: Analgesia must matche during the first 3 days of post-surgical scoring!");
           </script>
         {% endif %}
         
@@ -235,8 +235,24 @@
         </div>
       -->
       <!----- VIRUS BLOCK END ------>
-      
-      
+
+      {% elif form['type'] == 'datetime-local' %}
+      <div>
+        <label for="{{form['id']}}">{{form['name']}}</label>
+        <input type="{{form['type']}}" name="{{form['id']}}" id="{{form['id']}}" value="{{form['value']}}" min="{{form['min']}}" max="{{form['max']}}" size ="{{form['size']}}">
+        {% if form['name'] == 'Anesthetic Induction Time' %}
+          {% if form['anesthetic'] %}
+            <span id="anesthetic_ket_xyl"> ({{form['analgesia_amount']}} ml of Ketamine & Xylazine) </span>
+          {% else %}
+            <span id="anesthetic_ket_xyl"> (Isoflorine) </span>
+          {% endif %}
+        {% endif %}
+      </div>
+      <script>
+        document.getElementById("{{form['id']}}").onchange = () => {
+          console.log(document.getElementById("{{form['id']}}").value);
+        }
+      </script>
       {% else %}
 
 
@@ -522,7 +538,7 @@
     {% else %}
     <div>
     <input type="submit" value="Save & Back to Index" onclick="index()">
-    <input type="submit" value="Save & Next Action" onclick="next()">
+    <input type="submit" value="Save & Next Action" onclick="next()"> 
       {% if skippable %}
         <input type="submit" value="Skip" onclick="skip()" formnovalidate>
       {% endif %}
@@ -855,6 +871,7 @@
    var ketamin_xylazin_checked = document.getElementById("ket").checked
    // we take the weight from previous step, which has been passed by with "weight_pre_emptive_analgesia"  
    var weight_from_previous_step = document.getElementById("weight_pre_emptive_analgesia")
+   
    if (ketamin_xylazin_checked) {
      if (weight_from_previous_step.innerHTML > 0) {
        var dose_ml = (weight_from_previous_step.innerHTML * 0.01).toFixed(2)

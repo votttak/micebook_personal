@@ -23,9 +23,32 @@ def next_step(procedure, steps):
         # raise NameError('Wrong Step name. The requested step is not in this procedure')
 
 
-
-
 def next_procedure(id, last_action=None):
+    print("FUNCTION: next_procedure")
+    mouse = Mice.query.filter(Mice.id==id).first()
+    experiment = mouse.experiment
+    if not last_action:
+        index = 0
+    else:
+        action = Experiment_actions.query.filter(Experiment_actions.experiment_id==experiment, Experiment_actions.name==last_action).first()
+        if not action:
+            return 'Injection Surgery'
+            # raise NameError('Wrong Experiment or Action. The requested action is not in this experiment')
+        index = action.index + 1
+
+    next_actions = []
+    actions = Experiment_actions.query.filter(Experiment_actions.experiment_id==experiment, Experiment_actions.index==index).all()
+    print('actions', actions)
+    if not actions:
+        return 'dead'
+    for action in actions:
+        next_actions.append(action.name)
+
+    return next_actions
+
+
+
+def Severity(id, last_action=None):
     print("FUNCTION: next_procedure")
     mouse = Mice.query.filter(Mice.id==id).first()
     experiment = mouse.experiment

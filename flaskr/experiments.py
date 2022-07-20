@@ -199,6 +199,16 @@ def get_last_ref_weight(mouse_id):
         return "HERE_HERE_2"
         return None
 
+def ketmaine_xylazine_from_previous_step(mouse_id):
+    actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
+    anesthetic_entry = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.name == "Anesthetic").order_by(desc(Entries.id)).first() 
+    if anesthetic_entry:
+        if anesthetic_entry.content:
+            if anesthetic_entry.content == 'Ketamine & Xylazine':
+                return True
+            else:
+                return False
+
 
 @bp.route('/get_virus_construct/<virus_name>', methods=('GET', 'POST'))
 @login_required
@@ -247,8 +257,9 @@ def get_last_weight_for_drug_dosierung(mouse_id):
     # weights = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.name == "Bodyweight (grams)").order_by(desc(Entries.id)).all()
     weight = db.session.query(Entries).filter(Entries.step_id.in_(actions), Entries.name == "Bodyweight (grams)").order_by(desc(Entries.id)).first()
     if weight:
-        print(weight.name)
-        print(weight.content)
+        pass
+        # print(weight.name)
+        # print(weight.content)
     
 
 
@@ -290,14 +301,10 @@ def _update_severity(id, next=False):
 
 def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = None, severity=False):
 
-
-    
-    
     if isinstance(forms, dict):
         forms = forms.to_dict(flat=True)
     if extra_entries:
         forms.update(extra_entries)
-
     
     #Prepare next step if there isn't already a created next step for this procedure
     if next_step_args:
@@ -307,7 +314,6 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
             next_step = Steps(**next_step_args) 
             db.session.add(next_step)
             db.session.commit()
-
     
     if 'comment' in forms:
         step.comment = forms.pop('comment')
@@ -364,7 +370,6 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
                 db.session.add(Entries(**inputs))
         db.session.commit()
 
-    
     # Redirects to next page
     if not severity:
         if direction == 'next':
@@ -438,24 +443,13 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
     steps_names = injection_surgery_steps
     mouse = get_mouse(id)
 
-
     current_step = Steps.query.filter(Steps.id==step_id).first()
     injection = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
-    
-    
-   
-   
-    
-        
-  
 
     # get_last_weight_for_drug_dosierung(mouse.id)
     
     if current_step.name == steps_names[0]:
         pre_surgical_score_forms = [{'name':"Score", 'id':"score", 'type':"int"}, {'name':"Scoring hour", 'id':"score_time", 'type':"datetime-local", 'hours_precision':True, 'next_entry_in':timedelta(days=7)}]
-
-
-
 
         if request.method == 'POST':        
             if not request.form['Bodyweight (grams)']:      
@@ -466,6 +460,8 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             pre_surgical_score_forms.append({'name': 'Bodyweight (grams)', 'id': "Bodyweight (grams)", 'type':"float", 'reference_weight':True})
 
             next_step_args = {'name':steps_names[1], 'mouse_id':id, 'procedure_id':injection.id}    
+            print(00)
+            print(request.form)
             return readout(request.form, current_step, pre_surgical_score_forms, next_step_args)    
 
 
@@ -473,9 +469,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
         return display(args, reload_step=current_step, buffer=buffer_only)  
 
     elif current_step.name == steps_names[1]:
-
-
-        
 
         if platform=="win32":
             virus_csv_filename = os.path.join(Path().resolve().parents[0], "Virus_List.csv")
@@ -512,8 +505,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             {'name':"Virus {} Post-injection waiting (minutes)".format(i), 'id':"virus_waiting{}".format(i), 'type':"virus"}
             ]) for i in range(0, 10) ]
         
-        
-
         ### IMPLANTATION FIELDS ###
         class ImplantationBlock:
             def __init__(self, implantation_block_id: str, inputs:list):
@@ -529,7 +520,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             ]) for i in range(0, 10) ]
 
         
-
         weight_from_scoring = get_last_ref_weight(mouse.id)
         surgery_setup_page = [{'name':"Pre-emptive Analgesia", 'weight': weight_from_scoring, 'choices':[{'name':"BU", 'id':"bu_pre_emptive", 'value':"BU"}, {'name':"CA", 'id':"ca_pre_emptive", 'value':"CA"}], 'type':"checkbox"}] + surgery_setup.copy()
         surgery_setup += [{'name':"Pre-emptive Analgesia", 'id':"bu", 'type':"text"}, {'name':"Pre-emptive Analgesia", 'id':"ca", 'type':"text"}] #, {'name':"AP Coordinate", 'id':"AP", 'type':"float"}, {'name':"ML Coordinate", 'id':"ML", 'type':"float"}, {'name':"DV Coordinate", 'id':"DV", 'type':"float"}]
@@ -545,9 +535,11 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
     elif current_step.name == steps_names[2]:
 
         weight_from_scoring = get_last_ref_weight(mouse.id)
+        anesthetic_ketamine_and_xylazine = ketmaine_xylazine_from_previous_step(mouse.id)
+
         surgery_protocol = [
             # {'name':"Anesthetic Injection Time", 'id':"inj_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
-            {'name':"Anesthetic Induction Time", 'id':"inj_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
+            {'name':"Anesthetic Induction Time", 'id':"inj_time", 'analgesia_amount': weight_from_scoring*0.01, 'anesthetic': anesthetic_ketamine_and_xylazine, 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
             {'name':"Lidocain", 'id':"lido", 'weight': weight_from_scoring, 'type':"bool", 'choices':[{'id':"yes", 'name':"Yes", 'value':"True"}, {'id':"no", 'name':"No", 'value':"False", 'checked':True}]},
             {'name':"End of Surgery", 'id':"surg_end", 'type':"datetime-local"},
             {'name':"Wake-up Time", 'id':"wakeup_time", 'type':"datetime-local"}, 
@@ -641,10 +633,17 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
 
         if request.method == 'POST':
-            
             next_step_args = {'name': steps_names[3]+'_'+InjS_Scoring[0], 'mouse_id':id, 'procedure_id':injection.id}
+            print()
+            print(22)
+            print()
+            print(request.args)
+            print()
+            print(request.form)
+            print()
+            print(request.values)
             return readout(request.form, current_step, surgery_protocol, next_step_args, severity=True)
-            # return readout(severity=True)
+            
 
         
 
@@ -895,6 +894,12 @@ def _implantation_surgery(id, step_id, buffer_only=False): #experiment
         return display(args, reload_step=current_step, buffer=buffer_only)
 
 
+def get_time_if_in_db(step_id, input_name):
+        time_to_restore = Entries.query.filter(Entries.step_id == step_id, Entries.name == input_name).first()
+        if time_to_restore is None:
+            return ""
+        return time_to_restore.content
+
 
 protein_expression_check_steps = ['Weekly Expression Check']
 @bp.route('/<int:id>/Protein_Expression_Check/<int:step_id>', methods=('GET', 'POST')) #/<int:id>/<experiment>/
@@ -922,7 +927,7 @@ def _protein_expression_check(id, step_id, buffer_only=False):
 
     health_expression_check = [{'name':"Score", 'id':"score", 'type':"int"}, 
     {'name':"Protein Expressed", 'value_name':"Expression Quality", 'id':"prot", 'type':'range', 'min':0, 'max':10}, 
-    {'name':"Check hour", 'id':"check_time", 'type':"datetime-local", 'hours_precision':True, 'next_entry_in':timedelta(days=7)}, 
+    {'name':"Check hour", 'id':"check_time", 'type':"datetime-local", 'hours_precision':True, 'value': get_time_if_in_db(step_id, "Check hour"), 'next_entry_in':timedelta(days=7)}, 
     {'name':"Good to go to next step", 'id':"good", 'type':"bool", 'choices':[{'id':"yes", 'name':"Yes", 'value':"True"}, {'id':"no", 'name':"No", 'value':"False", 'checked':True}]}]
 
 
@@ -1325,25 +1330,30 @@ def _non_scheduling_experiment(id, step_id, buffer_only=False):
 
     experiment_number = int(current_step.name.split(" ")[-1])
 
-    experiment_forms = [{'name':"experiment_info", 'id':"experiment_info", 'type':"info", 'value':"Score mouse and precise experiment protocol, length or other usefull information"},
-    {'name':"Score", 'id':"score", 'type':"int"}, {'name':"Scoring hour", 'id':"score_time", 'type':"datetime-local", 'hours_precision':True, 'next_entry_in':timedelta(days=7)}]
+    experiment_forms = [ 
+        {'name':"Score", 'id':"score", 'type':"int"}, 
+        {'name':"Scoring hour", 'id':"score_time", 'type':"datetime-local", 'hours_precision':True, 'next_entry_in':timedelta(days=7)},
+        {'name':"experiment_info", 'id':"experiment_info", 'type':"info", 'value':"Score mouse and precise experiment protocol, length or other usefull information"}]
 
 
     if request.method == 'POST':
+        print("8")
         if request.form['direction'] and request.form['direction']=="end":
             procedure.finished = True
             db.session.commit()   
             next_step_args = None
 
         else:
-            if not request.form['Bodyweight (grams)']:
-                flash('Mouse weight measurement required')
-                args = {'mouse':mouse, 'page_name':"Experiment Recording "+str(experiment_number), 'forms':experiment_forms, 'comment_required':True, 'enddable':True}
-                return display(args, reload_step=current_step, buffer=buffer_only)  
+            # if not request.form['Bodyweight (grams)']:
+            #     flash('Mouse weight measurement required')
+            #     args = {'mouse':mouse, 'page_name':"Experiment Recording "+str(experiment_number), 'forms':experiment_forms, 'comment_required':True, 'enddable':True}
+            #     print(7)
+            #     return display(args, reload_step=current_step, buffer=buffer_only)  
 
             next_step_args = {'name':'Experiment Recording '+str(experiment_number+1), 'mouse_id':id, 'procedure_id':procedure.id}
             if experiment_number==1:
                 experiment_forms.append({'name': 'Bodyweight (grams)', 'id': "Bodyweight (grams)", 'type':"float", 'reference_weight':True}) # Make the first weight a reference weight for scoring
+        print(9)
         return readout(request.form, current_step, experiment_forms, next_step_args=next_step_args)
 
     args = {'mouse':mouse, 'page_name':"Experiment Recording "+str(experiment_number), 'forms':experiment_forms, 'comment_required':True, 'enddable':True}

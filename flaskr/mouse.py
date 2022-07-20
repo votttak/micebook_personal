@@ -113,11 +113,11 @@ def index(show_all=False):
         if mouse.room_id is None:
             unique_room_ids.add("Empty")
         else:
-            print(mouse.room_id)
+            # print(mouse.room_id)
             if mouse.room_id in rooms_to_exclude:
-                print(1)
+                # print(1)
                 continue
-            print(2)
+            # print(2)
             unique_room_ids.add(mouse.room_id)
 
     unique_room_ids = sorted(unique_room_ids)
@@ -260,6 +260,8 @@ def mouse_summary(id):
                     step_dict['entries'].append(entry_dict)
             procedure_dict['steps'].append(step_dict)
         summary.append(procedure_dict)
+
+    print(summary)
 
     return render_template('mouse/summary.html', mouse=mouse, procedures=summary)
 
