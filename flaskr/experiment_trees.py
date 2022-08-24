@@ -49,7 +49,6 @@ def next_procedure(id, last_action=None):
 
 
 def Severity(id, last_action=None):
-    print("FUNCTION: next_procedure")
     mouse = Mice.query.filter(Mice.id==id).first()
     experiment = mouse.experiment
     if not last_action:

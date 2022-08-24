@@ -1,12 +1,31 @@
 {% extends 'base.html' %}
 
+
+
+
 {% block header %}
-  <h1>{% block title %}Procedures summary for Mouse {{ mouse['irats_id'] }}{% endblock %}</h1>
+<h1>{% block title %}Procedures summary for Mouse {{ mouse['irats_id'] }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
+    
+    <div class="plot">
+        <canvas id="line-chart"></canvas>
+    </div>
+    
+    
+
+
+
+
+
+
     {% for procedure in procedures %}
         <b>{{procedure['name']}}</b>
+        
+        <!-- save summary data to div and hide it, this data is used for script that plots the score-weight diagram -->
+        <div id="summary-data" style="display: none;"> {{procedures}} </div>
+
         {% for step in procedure['steps'] %}
             <ul>
             <li><u>{{step['name']}}</u>, by {{step['user']}}
@@ -22,8 +41,207 @@
                 {% endif %}
             {% endfor %} 
             </ul>
-            </ul>
+        </ul>
         {% endfor %} 
-    <br>
+        <br>
     {% endfor %} 
+
+
+    <script>
+        // take string data and parse as json
+        var data_raw = document.getElementById("summary-data").textContent;        
+        data_raw = data_raw.replaceAll("'", '"')
+        data_raw = data_raw.replaceAll("True", 'true')
+        data_raw = data_raw.replaceAll("False", 'false')
+        data_raw = data_raw.replaceAll("None", 'null')
+        var json_data = JSON.parse(data_raw)
+
+
+        // PREPARE DATA FOR PLOT: start //
+        var num_procedures = json_data.length
+        let step_names = []
+        let step_scores = []
+        let step_weights = []
+        let procedure_names = []
+        // iterate over procedures
+        for (let p = 0; p < num_procedures; ++p) {
+            var current_procedure = json_data[p]
+            procedure_names.push(current_procedure.name)
+            steps = current_procedure['steps']
+            let num_steps = steps.length
+            for (let i = 0; i < num_steps; ++i) {
+                var current_step = steps[i];
+                step_names.push(current_step['name']);
+                var current_step_entries = steps[i]['entries'];
+                var num_entries = current_step_entries.length;
+                var body_weight_true = false;
+                var score_true = false;
+                for (let j = 0; j < num_entries; ++j) {
+                    if (current_step_entries[j]['name'] == 'Bodyweight (grams)') {
+                        step_weights.push(current_step_entries[j]['content']);
+                        body_weight_true = true;
+                    }
+                    else if (current_step_entries[j]['name'] == 'Score') {
+                        step_scores.push(current_step_entries[j]['content'])
+                        score_true = true;
+                    } 
+                }
+                // if no bodyweight in current step, take from previous one
+                if (body_weight_true == false) {
+                    step_weights.push(step_weights[step_weights.length - 1])
+                }
+                // if no weight in current step, take from previous one
+                if (score_true == false) {
+                    step_scores.push(step_scores[step_scores.length - 1])
+                }
+            }
+        }
+        // PREPARE DATA FOR PLOT: end //
+
+        var procedure_first_steps = []
+        for (let p = 0; p < num_procedures; ++p) {
+            var current_procedure = json_data[p]
+            steps = current_procedure['steps']
+            let num_steps = steps.length
+            var current_step = steps[0];
+
+            procedure_first_steps.push(current_step['name']);
+        }
+
+        // chose options are filled with lines (below)
+        const options = {
+                          plugins: {
+                            autocolors: false,
+                            annotation: {
+                              annotations: {
+                              }
+                            }
+                          },
+                          scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Procedures steps"
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: "Bodyweight (grams)"
+                                }
+                            },
+                            xAxisScore: {
+                                suggestedMax: 10,
+                                beginAtZero: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: "Score"
+                                }
+                            }
+                          }
+                        };
+        // prepare line for notating new procedure start
+        for (let p = 0; p < num_procedures; ++p) {
+            let new_line = {
+                            type: 'line',
+                            xMin: procedure_first_steps[p],
+                            xMax: procedure_first_steps[p],
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 2,
+                        }
+            let line_name = 'line' + p.toString();
+            options.plugins.annotation.annotations[line_name] = new_line;
+        }
+
+
+        var data =  {
+                    labels: step_names,
+                    datasets: [{    
+                        data: step_weights,
+                        label: "Bodyweight (grams)",
+                        borderColor: "#8e5ea2",
+                        fill: true
+                    },
+                    { 
+                        data: step_scores,
+                        label: "Score",
+                        borderColor: "#3e95cd",
+                        fill: true,
+                        yAxisID: "xAxisScore"
+                    }
+                    ]
+                }
+
+        // var data =  {
+        //             labels: step_names,
+        //             datasets: [{ 
+        //                 data: step_scores,
+        //                 label: "Score",
+        //                 borderColor: "#3e95cd",
+        //                 fill: true,
+        //                 yAxisID: "score_line_id"
+        //             }, {    
+        //                 data: step_weights,
+        //                 label: "Bodyweight (grams)",
+        //                 borderColor: "#8e5ea2",
+        //                 fill: true
+        //             }
+        //             ]
+        //         }
+
+
+        new Chart(document.getElementById("line-chart"), {
+            
+            type: 'line',
+            data: data,
+            options
+        });
+    </script>
+    
 {% endblock %}
+<!-- 
+options: {
+
+    plugins: {
+      autocolors: false,
+      annotation: {
+        annotations: {
+          line1: {
+            type: 'line',
+            yMin: 11,
+            yMax: 12,
+            borderColor: 'rgb(255, 99, 132)',
+            borderWidth: 3,
+          }
+        }
+      }
+    },
+    
+
+    // title: {
+    //     display: true,
+    //     text: 'Score vs. Weight'
+    // },
+
+    // scales: {
+    //     y: {
+    //         title: "SOME_TITLE",
+    //         type: 'linear',
+    //         display: true,
+    //         position: 'left',
+    //         },
+    //     y1: {
+    //         type: 'linear',
+    //         display: true,
+    //         position: 'right',
+        
+    //         // grid line settings
+    //         grid: {
+    //             drawOnChartArea: false, // only want the grid lines for one axis to show up
+    //         },
+    //     },
+    // },
+    
+} -->

@@ -45,6 +45,8 @@ def index(show_all=False):
         mice = []
         for mouse in row:
             mouse = dict(mouse)
+            print("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+            print(mouse)
             last_procedure = db.session.query(Procedures).filter(Procedures.mouse_id==mouse['mouse_id'], ~Procedures.finished).order_by(desc(Procedures.id)).first()
             if last_procedure and last_procedure.name:
                 mouse['action'] = "Current step is " + last_procedure.name
@@ -260,9 +262,6 @@ def mouse_summary(id):
                     step_dict['entries'].append(entry_dict)
             procedure_dict['steps'].append(step_dict)
         summary.append(procedure_dict)
-
-    print(summary)
-
     return render_template('mouse/summary.html', mouse=mouse, procedures=summary)
 
 # @bp.route('/<int:id>/delete', methods=('POST',))
