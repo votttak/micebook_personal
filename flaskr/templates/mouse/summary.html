@@ -8,13 +8,17 @@
 {% endblock %}
 
 {% block content %}
+    <!-- Print button for saving the summary in pdf -->
+    <div>
+        <br>
+        <button style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onClick="window.print()">Print experiment summary</button>
+    </div>
     
     <div class="plot">
         <canvas id="line-chart"></canvas>
     </div>
     
     
-
 
 
 
@@ -71,7 +75,11 @@
             let num_steps = steps.length
             for (let i = 0; i < num_steps; ++i) {
                 var current_step = steps[i];
-                step_names.push(current_step['name']);
+                if (i == 0) {
+                    step_names.push(current_step['name'] + " (procedure_" + (p+1).toString() + ")");
+                } else {
+                    step_names.push(current_step['name']);
+                }
                 var current_step_entries = steps[i]['entries'];
                 var num_entries = current_step_entries.length;
                 var body_weight_true = false;
@@ -105,7 +113,10 @@
             let num_steps = steps.length
             var current_step = steps[0];
 
-            procedure_first_steps.push(current_step['name']);
+            // console.log(current_step['name'] + " (procedure_" + (p+1).toString() + ")")
+
+            procedure_first_steps.push(current_step['name'] + " (procedure_" + (p+1).toString() + ")");
+            // procedure_first_steps.push(current_step['name']);
         }
 
         // chose options are filled with lines (below)
@@ -142,6 +153,9 @@
                             }
                           }
                         };
+       
+        
+
         // prepare line for notating new procedure start
         for (let p = 0; p < num_procedures; ++p) {
             let new_line = {
@@ -193,7 +207,6 @@
 
 
         new Chart(document.getElementById("line-chart"), {
-            
             type: 'line',
             data: data,
             options

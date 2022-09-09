@@ -40,13 +40,12 @@ def time_display(delta):
 
 @bp.route('/', methods=('GET', 'POST'))
 @login_required
-def index(show_all=False):
+# def index(show_all=False):
+def index(show_all=True):
     def add_next_action(row):
         mice = []
         for mouse in row:
             mouse = dict(mouse)
-            print("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
-            print(mouse)
             last_procedure = db.session.query(Procedures).filter(Procedures.mouse_id==mouse['mouse_id'], ~Procedures.finished).order_by(desc(Procedures.id)).first()
             if last_procedure and last_procedure.name:
                 mouse['action'] = "Current step is " + last_procedure.name
@@ -70,18 +69,15 @@ def index(show_all=False):
     order_by_sql =    """ ORDER BY next_operation;"""
 
     if request.method=='POST':
-        print(f"POST form [{request.form}]")
         if 'irats_id' in request.form:
             irats_id = request.form['irats_id']
             sql_request = text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)
-            print(f"SQL REQUEST\n{sql_request}")
             todo_mice = db.engine.execute(text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)).all()
             ids = [mouse.mouse_id for mouse in todo_mice]
             todo_mice = add_next_action(todo_mice)
             euthanized_mice = Mice.query.filter(Mice.irats_id==irats_id, ~ Mice.id.in_(ids), and_(Mice.euthanized!=None, Mice.euthanized==True)).order_by(desc(Mice.id))
             licenced_mice = Mice.query.filter(Mice.experiment!=None, Mice.irats_id==irats_id, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
             all_mice = Mice.query.filter(Mice.experiment==None, Mice.irats_id==irats_id, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
-            #print(all_mice[0].euthanized)
             
 
         elif 'cage' in request.form:
@@ -154,7 +150,6 @@ def reload():
 
 @bp.route("/search/<string:box>")
 def process(box):
-    print(f"request + {request}")
     query = request.args.get('query')
     if box == 'id':
         if query.isspace():
@@ -163,9 +158,6 @@ def process(box):
             mice = Mice.query.filter(func.lower(Mice.irats_id).contains(query.lower())).all()
 
         rooms_to_include = parse_rooms_filter(request.args.get('rooms_filter'))
-
-        print(f"rooms_to_include {rooms_to_include}")
-        print(f"befoter filtering mouses count {len(mice)}")
 
         if len(rooms_to_include) > 0:
             filtered_by_room_mices = []
@@ -178,8 +170,6 @@ def process(box):
                 elif m.room_id is None and none_included:
                     filtered_by_room_mices.append(m)
             mice = filtered_by_room_mices
-
-        print(f"after filtering mouses count {len(mice)}")
 
         suggestions = [{'value': mouse.irats_id, 'data':mouse.irats_id} for mouse in mice if not str(mouse.irats_id).startswith("Z-")]
     if box == 'cage':

@@ -83,6 +83,9 @@ def virus_update(virus_id):
 @login_required
 def delete(id):
     virus = get_virus(id)
+    print("DDDDDDDDDDDDDDDDD")
+    print(virus)
+    print("DDDDDDDDDDDDDDDDD")
     db.session.delete(virus)
     db.session.commit()
     return redirect(url_for('virus.index'))

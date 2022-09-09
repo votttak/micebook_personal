@@ -28,12 +28,21 @@
         {% endif %}
       {% endfor %}
       </span>
+      
+      <form method="POST" id="{{experiment.id}}">
+        <input type="submit" value="Choose Experiment" onclick="choose('{{experiment.id}}')">
+      </form>
+      
+      <form action="{{ url_for('experiments.delete_experiment', experiment_id=experiment.id, mouse_id=mouse.id) }}" method="post">
+        <div>
+          <input style="float: right;" class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+        </div>
+      </form>
+      
+      
+      
     </div>
-    <form method="POST" id="{{experiment.id}}">
-      <div>
-        <input style="float: right;" type="submit" value="Choose Experiment" onclick="choose('{{experiment.id}}')">
-    </div>
-    </form>
+    
 
     </article>
     {% endfor %}
@@ -47,7 +56,7 @@
                .attr("name", "experiment")
                .attr("value", id)
                .appendTo(form);
-       };
+      };
      </script>
 
   </div>

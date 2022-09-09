@@ -318,7 +318,7 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
     if 'comment' in forms:
         step.comment = forms.pop('comment')
     step.new = False
-
+    
     ### Delete possible previous entries if step gets rewritten
     delete_entries = Entries.__table__.delete().where(Entries.step_id == step.id)
     db.session.execute(delete_entries)
@@ -391,6 +391,31 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
 
 
 
+
+## get the experiment from the database according "id" ##
+def get_experiment(id):
+    experiment = Experiments.query.filter(Experiments.id==id).first()
+    if experiment is None:
+        abort(404, "Experimnet id {0} doesn't exist.".format(id))
+    return experiment
+
+
+## deleting experiment ## 
+@bp.route('/<int:experiment_id>/<int:mouse_id>/delete_experiment', methods=('GET', 'POST'))
+@login_required
+def delete_experiment(experiment_id, mouse_id):
+    experiment = get_experiment(experiment_id)
+    print(experiment_id)
+    db.session.delete(experiment)
+    db.session.commit()
+    
+    # return redirect(url_for('virus.index'))
+    # return redirect(url_for('actions.experiment_choice'))
+    # return redirect(url_for('http://127.0.0.1:5000/1436/choose_experiment'))
+    return redirect(url_for('experiments.choose_experiment', id=mouse_id))
+
+
+
 @bp.route('/<int:id>/choose_experiment', methods=('GET', 'POST'))
 @login_required
 def choose_experiment(id):
@@ -410,8 +435,9 @@ def choose_experiment(id):
             experiment_dict = {'id':experiment.id, 'name':experiment.name, 'actions':action_list, 'project':project.name}
             experiments_list.append(experiment_dict)
         else:
-            experiment_dict = {'id':experiment.id, 'name':experiment.name, 'actions':action_list}
+            experiment_dict = {'id': experiment.id, 'name': experiment.name, 'actions':action_list}
             experiments_list.append(experiment_dict)            
+
     
     
 
@@ -544,7 +570,9 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
         weight_from_scoring = get_last_ref_weight(mouse.id)
         anesthetic_ketamine_and_xylazine = ketmaine_xylazine_from_previous_step(mouse.id)
-
+        print("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+        print(weight_from_scoring)
+        print("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
         surgery_protocol = [
             # {'name':"Anesthetic Injection Time", 'id':"inj_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
             {'name':"Anesthetic Induction Time", 'id':"inj_time", 'analgesia_amount': weight_from_scoring*0.01, 'anesthetic': anesthetic_ketamine_and_xylazine, 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
@@ -1117,22 +1145,29 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
 
         if type==0:
             scheduling_initialization_forms = [
-                {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
+                # {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
                 {'name':"Score", 'id':"score", 'type':"int"}, 
-                {'name':"Food collected during experiment", 'id':"food_collected", 'type':"float"}, 
+                {'name':"Food collected during experiment (grams)", 'id':"food_collected", 'type':"float"}, 
                 {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"}, 
-                {'name':"Extra food given", 'id':"food_given", 'type':"float"}, 
+                {'name':"Extra food given (grams)", 'id':"food_given", 'type':"float"}, 
                 {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)},
                 # {'name':"Is animal ready for experiment?", 'id':"ready", 'type':'bool', 'choices':[{'id':"yes", 'name':"Yes", 'value':True}, {'id':"no", 'name':"No", 'value':False, 'checked':True}]}
                 ]
         elif type==1:
-            scheduling_initialization_forms = [{'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, {'name':"Score", 'id':"score", 'type':"int"}, {'name':"Food collected during experiment", 'id':"food_collected", 'type':"float"}, 
-            {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"}, {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)},
+            scheduling_initialization_forms = [
+                # {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
+                {'name':"Score", 'id':"score", 'type':"int"}, 
+                {'name':"Food collected during experiment (grams)", 'id':"food_collected", 'type':"float"}, 
+                {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"}, 
+                {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)},
             # {'name':"Is animal ready for experiment?", 'id':"ready", 'type':'bool', 'choices':[{'id':"yes", 'name':"Yes", 'value':True}, {'id':"no", 'name':"No", 'value':False, 'checked':True}]}
             ]
         elif type==2:
-            scheduling_initialization_forms = [{'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, {'name':"Score", 'id':"score", 'type':"int"},
-            {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"}, {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)},
+            scheduling_initialization_forms = [
+                # {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
+                {'name':"Score", 'id':"score", 'type':"int"},
+                {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"}, 
+                {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)},
             # {'name':"Is animal ready for experiment?", 'id':"ready", 'type':'bool', 'choices':[{'id':"yes", 'name':"Yes", 'value':True}, {'id':"no", 'name':"No", 'value':False, 'checked':True}]}
             ]
 
@@ -1171,7 +1206,7 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
             page_name=scheduling_name+" Check Day "+str(day)
 
         else:
-            last_food_collected = interprete(Entries.query.filter(Entries.step_id==previous_step.id, Entries.name=='Food collected during experiment').order_by(desc(Entries.id)).first())
+            last_food_collected = interprete(Entries.query.filter(Entries.step_id==previous_step.id, Entries.name=='Food collected during experiment (grams)').order_by(desc(Entries.id)).first())
             last_food_given = interprete(Entries.query.filter(Entries.step_id==previous_step.id, Entries.name=='Extra food given').order_by(desc(Entries.id)).first())
             if last_food_collected and last_food_given:
                 daily_food = last_food_collected + last_food_given
@@ -1215,7 +1250,6 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
                     next_step_name = step_name+'_Day '+ str(day+1) # Just go to next day
                     
                 if "Ad Libitum" in request.form or ("Ad Libitum" in current_step.name):
-
                     current_step.name = step_name+' Ad Libitum' # Ad libitum instead of planned scheduling day
                     db.session.commit()
 
@@ -1226,25 +1260,29 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
                         extra_entry = {'ad_libitum_time':(interprete(last_timing)+timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")}
                         scheduling_initialization_forms.append({'name':"Ad Libitum start time", 'id':"ad_libitum_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=num_days)})
                     scheduling_initialization_forms.append({'name':"Number of ad libitum days", 'id':"ad_libitum_days", 'type':"float"})
-
                 elif not "introduction_time" in request.form: 
                     # Complete entries with an automated food introduction time based on previous one
                     scheduling_initialization_forms.append({'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)})
                     last_timing = get_last_time_schedule(id, current_step=current_step)
                     extra_entry={'introduction_time':(interprete(last_timing)+timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")}
-
-
                 next_step_args = {'name':next_step_name, 'mouse_id':id, 'procedure_id':procedure.id}
-
-
             return readout(request.form, current_step, scheduling_initialization_forms, next_step_args=next_step_args , extra_entries=extra_entry)
 
-        args = {'mouse':mouse, 'page_name':page_name, 'forms':scheduling_initialization_forms, 'weight_target_message':weight_target_message, 'food_amount': daily_food, 'scoring':True, 'scheduling':"pre_weight", 'soft_weight_target':weight_target, 'hard_weight_target':extreme_weight, 'ad_libitum':ad_libitum_option, 'enddable':True}
+        args = {'mouse':mouse, 
+                'page_name':page_name,      
+                'forms':scheduling_initialization_forms, 
+                'weight_target_message':weight_target_message, 
+                'food_amount': daily_food, 
+                'scoring':True, 
+                # 'scheduling':"pre_weight", 
+                'soft_weight_target':weight_target, 
+                'hard_weight_target':extreme_weight, 
+                'ad_libitum':ad_libitum_option, 
+                'enddable':True}
         return display(args, reload_step=current_step, buffer=buffer_only)   
 
 
     else:
-        print("HERE_1234")
         init_weight = get_last_ref_weight(id)
         if type==0:
             weight_target = 0.9*init_weight
@@ -1269,22 +1307,22 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
 
         if type==0:
             scheduling_experiment_forms = [
-                            {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
+                            # {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
                             {'name':"Score", 'id':"score", 'type':"int"}, 
-                            {'name':"Food collected during experiment", 'id':"food_collected", 'type':"float"}, 
+                            {'name':"Food collected during experiment (grams)", 'id':"food_collected", 'type':"float"}, 
                             {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"}, 
-                            {'name':"Extra food given", 'id':"food_given", 'type':"float"}, 
+                            {'name':"Extra food given (grams)", 'id':"food_given", 'type':"float"}, 
                             {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}]
         elif type==1:
             scheduling_experiment_forms = [
-                            {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
+                            # {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
                             {'name':"Score", 'id':"score", 'type':"int"}, 
-                            {'name':"Food collected during experiment", 'id':"food_collected", 'type':"float"}, 
+                            {'name':"Food collected during experiment (grams)", 'id':"food_collected", 'type':"float"}, 
                             {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"},     
                             {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}]
         elif type==2:
             scheduling_experiment_forms = [
-                            {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
+                            # {'name':"Pre-session weight (grams)", 'id':"pre_weight", 'type':"float"}, 
                             {'name':"Score", 'id':"score", 'type':"int"},
                             {'name':"Post-session weight (grams)", 'id':"post_weight", 'type':"float"},     
                             {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}]
@@ -1324,7 +1362,7 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
             page_name=page_name+" Day "+str(day)
 
         else:
-            last_food_collected = interprete(Entries.query.filter(Entries.step_id==previous_step.id, Entries.name=='Food collected during experiment').order_by(desc(Entries.id)).first())
+            last_food_collected = interprete(Entries.query.filter(Entries.step_id==previous_step.id, Entries.name=='Food collected during experiment (grams)').order_by(desc(Entries.id)).first())
             last_food_given = interprete(Entries.query.filter(Entries.step_id==previous_step.id, Entries.name=='Extra food given').order_by(desc(Entries.id)).first())
             if last_food_collected and last_food_given:
                 daily_food = last_food_collected + last_food_given
@@ -1336,17 +1374,13 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
                     
             day = int(current_step.name.split(" ")[-1])
             page_name=scheduling_name+" Check Day "+str(day)
-            print("BBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-            print(day)
+
             if day!=1:
                 checks = db.session.query(Steps.id).filter(Steps.mouse_id==id, Steps.name.contains(step_name), Steps.procedure_id==procedure.id, Steps.id<current_step.id).subquery()
                 introduction_time = interprete(db.session.query(Entries).filter(Entries.step_id.in_(checks),  Entries.name==scheduling_operation+' time').order_by(desc(Entries.id)).first())
                 info = scheduling_operation+" at " + introduction_time.strftime("%I:%M%p") + " (+/- 1 hour)"
                 scheduling_experiment_forms.remove({'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)})
                 scheduling_experiment_forms = [{'name':scheduling_operation+" time", 'id':"introduction_time_info", 'type':"info", 'value':info}] + scheduling_experiment_forms
-                print("VVVVVVVVVVVVVVVVVVVVVVVVVVV")
-                print(scheduling_experiment_forms)
-
 
         if day>56:
             flash('Initialization going for more than 2 weeks! Euthanize mouse.')

@@ -44,8 +44,8 @@
                 <input type="number" name="ad_libitum_days" id="ad_libitum_days" min=1 required>                
               </div>
               <div>
-              <button type="submit" onclick="ad_libitum_index()" >Save & Back to Index</button>
-              <button type="submit" onclick="ad_libitum_next()" >Save & Next Action</button>
+                <button type="submit" onclick="ad_libitum_index()" >Save & Back to Index</button>
+                <button type="submit" onclick="ad_libitum_next()" >Save & Next Action</button>
               </div>
             </form> 
           </div>
@@ -536,10 +536,13 @@
     {% if no_back %}
       <input type="submit" value="Save" onclick="index()">
     {% else %}
+
+     
     <div>
-    <input type="submit" value="Save & Back to Index" onclick="index()">
-    <input type="submit" value="Save & Next Action" onclick="next()">
-    <input type="submit" value="Save" onclick="easy_peasy()"> 
+    <input style="background-color: white; color: black; border: 2px solid #FDDA0D; border-radius: 12px;" type="submit" value="Save & Back to Index" onclick="index()">
+    <!-- <input style="background-color: white; color: black; border: 2px solid #008CBA; border-radius: 12px;" type="submit" value="Save" onclick="easy_peasy()">  -->
+    <input style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" type="submit" value="Save" onclick="easy_peasy()"> 
+    <input style="background-color: white; color: black; border: 2px solid #4CAF50; border-radius: 12px; font-size: 16px;" type="submit" value="Save & Next Action" onclick="next()">
       {% if skippable %}
         <input type="submit" value="Skip" onclick="skip()" formnovalidate>
       {% endif %}
@@ -571,7 +574,7 @@
             <tr>
               <td rowspan=2> Bodyweight </td>
               <td rowspan=2>
-                <input type='text' name="Bodyweight (grams)" id="score_weight" value=""></input>
+                <input type='number' step="0.1" name="Bodyweight (grams)" id="score_weight" value=""></input>
                 <label id="score_weight_label" for="score_weight"></label>
               </td>
                 <script>
@@ -1175,7 +1178,7 @@
     {% if not not_euthanasia %}
     <form action="{{ url_for('experiments.select_next_procedure', id=mouse['id'], procedure_name='Euthanasia') }}" >
       <div>
-        <input type="submit" value="Euthanize">
+        <input style="background-color: white; color: black; border: 2px solid #f44336;" type="submit" value="Euthanize">
       </div>
     </form>  
     {% else %}
