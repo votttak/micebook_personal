@@ -1,7 +1,7 @@
 
 ###
 # Backend for Viruses (button on the top of the main page and some of the others).
-# Procedures for navigating the virus table, updating, adding, deleting a virus
+# Procedures for navigating the virus table, updating, adding, deleting a virus.
 ###
 
 from flask import (
