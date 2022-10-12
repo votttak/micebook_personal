@@ -33,7 +33,7 @@ def create_app(test_config=None):
     moment.init_app(app)
     db.init_app(app)
     with app.app_context():
-        #db.drop_all()  ## CAREFULL!!!! Uncomment to delete all tables and their content
+        # db.drop_all()  ## CAREFULL!!!! Uncomment to delete all tables and their content
         db.create_all()
 
     

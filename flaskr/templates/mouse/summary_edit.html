@@ -8,18 +8,39 @@
 {% endblock %}
 
 {% block content %}
-<!-- Print button for saving the summary in pdf -->
-<div>
-    <br>
-    <button style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onClick="window.print()">Print experiment summary</button>
-    <a style="float: right; color: rgb(240, 14, 14);" class="action" href="{{ url_for('mouse.mouse_summary_edit', id=mouse_id_in_procedure) }}">Edit</a>
+    <!-- Print button for saving the summary in pdf -->
+    <div>
+        <br>
+        <button style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onClick="window.print()">Print experiment summary</button>
     </div>
-
+    
     <div class="plot">
         <canvas id="line-chart"></canvas>
     </div>
     
     
+    
+
+    <!-- modal for the button -->
+    <div id="change-summary-entry-window" class="modal">
+
+        <div class="modal-content">
+          <form id="form_id_in_modal" method="POST" action="">
+
+            <div>
+                <input type="text" name="modal_input_id" id="modal_input_id" value="something went wrong, the value hasn't been read out" size=40px>
+            </div>
+
+            <!-- <a id="a_tag_modal" style="float: left; color: rgb(240, 14, 14);" class="action" href="">Edit</a> -->
+
+            <input type="submit" value="SaveSave">
+          </form>
+
+          <button type="button" id="search-by-mouse-window-close-btn-TOCHANGE">Close</button>
+        </div>
+    </div>
+
+
 
     {% for procedure in procedures %}
         <b>{{procedure['name']}}</b>
@@ -27,19 +48,52 @@
         <!-- save summary data to div and hide it, this data is used for script that plots the score-weight diagram -->
         <div id="summary-data" style="display: none;"> {{procedures}} </div>
 
+        <input id="mouse_id_data" value="{{procedure['mouse_id']}}" hidden>
+        <input id="mouse_id_data_1" value="{{procedure}}" hidden>
+        
+
         {% for step in procedure['steps'] %}
             <ul>
             <li><u>{{step['name']}}</u>, by {{step['user']}}
             <ul> 
             {% if step['comment'] %}
+                <br>
                 <li>Comment: {{step['comment']}}
             {% endif %}
             {% for entry in step['entries'] %}
-                {% if entry['name']=="Score" %}
-                    <li><b>{{entry['name']}}: {{entry['content']}}</b>
+                {% if entry['name'] == "Score" %}
+
+                    <input id="entry_format" type="{{entry['entry_format']}}" hidden>
+                    <li><label>Score:</label>
+                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}" style="background: none!important; 
+                                                                                        border: none; 
+                                                                                        padding: 0!important; 
+                                                                                        font-family: arial, sans-serif; 
+                                                                                        color: #069; 
+                                                                                        text-decoration: underline; 
+                                                                                        cursor: pointer; 
+                                                                                        font-size: 16px;">{{entry['content']}}</button>
+                    
+                    <button type="button" class="entry_changeable" style="background: none!important; 
+                                                                                        border: none; 
+                                                                                        padding: 0!important; 
+                                                                                        font-family: arial, sans-serif; 
+                                                                                        color: #069; 
+                                                                                        text-decoration: underline; 
+                                                                                        cursor: pointer; 
+                                                                                        font-size: 16px;">{{entry['entry_id']}}</button>
                 {% else %}
-                    <li>{{entry['name']}}: {{entry['content']}}
-                
+
+                    <input id="entry_format" type="{{entry['entry_format']}}" hidden>
+                    <li><label>{{entry['name']}}:</label>
+                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}" style="background: none!important; 
+                                                                                        border: none; 
+                                                                                        padding: 0!important; 
+                                                                                        font-family: arial, sans-serif; 
+                                                                                        color: #069; 
+                                                                                        text-decoration: underline; 
+                                                                                        cursor: pointer; 
+                                                                                        font-size: 16px;">{{entry['content']}}</button>
                 {% endif %}
             {% endfor %} 
             </ul>
@@ -48,6 +102,69 @@
         <br>
     {% endfor %} 
 
+
+    <script>
+         
+
+        var search_by_mouse_window = document.getElementById("change-summary-entry-window");
+        search_by_mouse_window.style.display = 'none';
+
+        var close_search_by_mouse_window = document.getElementById("search-by-mouse-window-close-btn-TOCHANGE");
+        close_search_by_mouse_window.onclick = function() 
+        {
+          search_by_mouse_window.style.display = 'none';
+        }
+
+        var changeable_entries = document.getElementsByClassName("entry_changeable");
+
+        Array.from(changeable_entries).forEach((changeable_entry) => {
+            changeable_entry.onclick = function() {
+                search_by_mouse_window.style.display = 'block';
+                var textInInputField = changeable_entry.innerHTML;
+                document.getElementById("modal_input_id").setAttribute('value', textInInputField);
+                var mouse_id_element = document.getElementById("mouse_id_data")
+                
+                var entry_format = document.getElementById("entry_format") 
+                
+
+                console.log("TRIPPLE PEACE")
+                console.log(entry_format)
+                console.log(entry_format.type)
+                
+                //in "value" we pass entry_id
+                var database_entry_id = changeable_entry.value 
+
+                console.log("FOUR TIMES PEACE")
+                console.log(database_entry_id)
+
+                var parameter_for_href = "{{ url_for('mouse.summary_edit_entry', entry_id=88888, mouse_id=99999) }}"
+                parameter_for_href = parameter_for_href.replace("88888", database_entry_id);
+                parameter_for_href = parameter_for_href.replace("99999", mouse_id_element.value);
+                document.getElementById("form_id_in_modal").setAttribute('action', parameter_for_href);
+            }
+        });
+
+
+
+        // return;
+        // // hide the search by mouse window at astart
+        // var search_by_mouse_window = document.getElementById("change-summary-entry-window-id7");
+        // search_by_mouse_window.style.display = 'none';
+        
+        // // show the search by mouse window on click
+        // var search_by_mouse_btn = document.getElementById("change-summary-entry-btn_id7");
+        // search_by_mouse_btn.onclick = function() 
+        // {
+        //   search_by_mouse_window.style.display = 'block';
+        // }
+        
+        // // hide the search by mouse window on close btn
+        // var close_search_by_mouse_window = document.getElementById("search-by-mouse-window-close-btn-TOCHANGE");
+        // close_search_by_mouse_window.onclick = function() 
+        // {
+        //   search_by_mouse_window.style.display = 'none';
+        // }
+    </script>
 
     <script>
         // take string data and parse as json
@@ -102,8 +219,9 @@
                 }
             }
         }
-        // PREPARE DATA FOR PLOT: end //
 
+
+        // PREPARE DATA FOR PLOT: end //
         var procedure_first_steps = []
         for (let p = 0; p < num_procedures; ++p) {
             var current_procedure = json_data[p]

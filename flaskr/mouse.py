@@ -237,7 +237,9 @@ def update(id):
 def mouse_summary(id):
     mouse = get_mouse(id)
     summary=[]
-    procedures= Procedures.query.filter(Procedures.mouse_id==id).all()
+    procedures= Procedures.query.filter(Procedures.mouse_id==id).all() 
+    
+    mouse_id_in_procedure = procedures[0].mouse_id
     for procedure in procedures:
         procedure_dict = {'name':procedure.name,'steps':[]}
         steps = Steps.query.filter(Steps.procedure_id==procedure.id).order_by(asc(Steps.id)).all()
@@ -252,7 +254,82 @@ def mouse_summary(id):
                     step_dict['entries'].append(entry_dict)
             procedure_dict['steps'].append(step_dict)
         summary.append(procedure_dict)
-    return render_template('mouse/summary.html', mouse=mouse, procedures=summary)
+    return render_template('mouse/summary.html', mouse=mouse, procedures=summary, mouse_id_in_procedure=mouse_id_in_procedure)
+
+
+
+@bp.route('/<int:id>/summary_edit', methods=('GET', 'POST'))
+@login_required
+def mouse_summary_edit(id):
+    mouse = get_mouse(id)
+    summary=[]
+    procedures= Procedures.query.filter(Procedures.mouse_id==id).all()
+    for procedure in procedures:
+        procedure_dict = {'name':procedure.name,'steps':[], 'mouse_id': id}
+        steps = Steps.query.filter(Steps.procedure_id==procedure.id).order_by(asc(Steps.id)).all()
+        for step in steps:
+            user = Users.query.filter(Users.id==step.user_id).first()
+            step_dict = {'name':step.name, 'user':user.full_name, 'comment':step.comment, 'entries':[]}
+            entries = Entries.query.filter(Entries.step_id==step.id).all()
+            for entry in entries:
+                content = interprete(entry, display_mode=True)
+                if content is not None:
+                    entry_dict = {'name':entry.name, 'content':content, 'entry_id':entry.id, 'entry_format':entry.entry_format}
+                    step_dict['entries'].append(entry_dict)
+            procedure_dict['steps'].append(step_dict)
+        summary.append(procedure_dict)
+    return render_template('mouse/summary_edit.html', mouse=mouse, procedures=summary)
+
+
+
+
+def get_entry(id):
+    entry = Entries.query.filter(Entries.id==id).first()
+    if entry is None:
+        abort(404, "Entry id {0} doesn't exist.".format(id))
+    return entry
+
+
+
+## change entry in summary ##
+@bp.route('/<int:entry_id>/<int:mouse_id>/summary_edit_entry', methods=('GET', 'POST'))
+@login_required
+def summary_edit_entry(entry_id, mouse_id):
+    entry = get_entry(entry_id)
+    if request.method == "POST":
+        new_entry_content = request.form['modal_input_id']
+        print(new_entry_content)
+        print("QQQQQQQQQQQQQIIIIIIIIIIIVVVVVVVVVV")
+        entry.content = new_entry_content;
+        print(entry.content)
+        print("QQQQQQQQQQQQQIIIIIIIIIIIVVVVVVVVVV")
+        db.session.query(Entries).filter(Entries.id == entry_id).update({"content":new_entry_content})
+        db.session.commit()
+        print("END")
+        return redirect(url_for('mouse.mouse_summary_edit', id=mouse_id))
+    pass
+    # virus = get_virus(virus_id)
+    # if request.method == 'POST':
+    #     name = request.form['name']
+    #     construct = request.form['construct']
+    #     container = request.form['container']
+    #     error = None
+    #     already_exist = Viruses.query.filter(Viruses.id!=virus_id, Viruses.name==name).first()
+    #     if already_exist:
+    #         error = 'Virus name already exists'
+    #     elif not construct:
+    #         error = 'Construct is required'
+    #     if not container:
+    #         error = 'Container is required.'
+
+    #     if error is not None:
+    #         flash(error)
+    #     else:
+    #         inputs = request.form.to_dict(flat=True)
+    #         db.session.query(Viruses).filter(Viruses.id == virus_id).update(inputs)
+    #         db.session.commit()
+    #         return redirect(url_for('virus.index'))
+    # return render_template('virus/virus_update.html', virus=virus)
 
 # @bp.route('/<int:id>/delete', methods=('POST',))
 # @login_required

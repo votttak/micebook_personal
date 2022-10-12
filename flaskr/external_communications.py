@@ -35,7 +35,6 @@ if platform == "linux":
 
 ## ??? ##
 def interprete(entry, display_mode=False, type=None):
-    print("FUNCTION: interprete")
     if not entry or entry.content=="":
         return None
     if not type:
