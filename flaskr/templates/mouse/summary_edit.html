@@ -28,12 +28,13 @@
           <form id="form_id_in_modal" method="POST" action="">
 
             <div>
-                <input type="text" name="modal_input_id" id="modal_input_id" value="something went wrong, the value hasn't been read out" size=40px>
+                <label id="label_for_input" for="modal_input_id"></label>
+                <input type="text" min="" max="" name="modal_input_id" id="modal_input_id" value="something went wrong, the value hasn't been read out" size=40px>
             </div>
 
             <!-- <a id="a_tag_modal" style="float: left; color: rgb(240, 14, 14);" class="action" href="">Edit</a> -->
 
-            <input type="submit" value="SaveSave">
+            <input type="submit" value="Save">
           </form>
 
           <button type="button" id="search-by-mouse-window-close-btn-TOCHANGE">Close</button>
@@ -44,7 +45,7 @@
 
     {% for procedure in procedures %}
         <b>{{procedure['name']}}</b>
-        
+        <span><i>({{procedure['procedure_date']}})</i></span>
         <!-- save summary data to div and hide it, this data is used for script that plots the score-weight diagram -->
         <div id="summary-data" style="display: none;"> {{procedures}} </div>
 
@@ -64,8 +65,8 @@
                 {% if entry['name'] == "Score" %}
 
                     <input id="entry_format" type="{{entry['entry_format']}}" hidden>
-                    <li><label>Score:</label>
-                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}" style="background: none!important; 
+                    <li><label id="label_id_for_summary_entry">Score:</label>
+                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}_{{entry['name']}}" style="background: none!important; 
                                                                                         border: none; 
                                                                                         padding: 0!important; 
                                                                                         font-family: arial, sans-serif; 
@@ -74,19 +75,33 @@
                                                                                         cursor: pointer; 
                                                                                         font-size: 16px;">{{entry['content']}}</button>
                     
-                    <button type="button" class="entry_changeable" style="background: none!important; 
+                    <!-- tracks entry id, used for debuging -->
+                    <!-- <button type="button" class="entry_changeable" style="background: none!important; 
                                                                                         border: none; 
                                                                                         padding: 0!important; 
                                                                                         font-family: arial, sans-serif; 
                                                                                         color: #069; 
                                                                                         text-decoration: underline; 
                                                                                         cursor: pointer; 
-                                                                                        font-size: 16px;">{{entry['entry_id']}}</button>
+                                                                                        font-size: 16px;">{{entry['entry_id']}}</button> -->
+                
+                {% elif entry['entry_format'] == "range" %}
+                    <input id="entry_format" type="{{entry['entry_format']}}" hidden>
+                    <li><label>{{entry['name']}}:</label>
+                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}_{{entry['name']}}" style="background: none!important; 
+                                                                                        border: none; 
+                                                                                        padding: 0!important; 
+                                                                                        font-family: arial, sans-serif; 
+                                                                                        color: #069; 
+                                                                                        text-decoration: underline; 
+                                                                                        cursor: pointer; 
+                                                                                        font-size: 16px;">{{entry['content']}}/10</button>
+                    
                 {% else %}
 
                     <input id="entry_format" type="{{entry['entry_format']}}" hidden>
                     <li><label>{{entry['name']}}:</label>
-                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}" style="background: none!important; 
+                    <button type="button" class="entry_changeable" value="{{entry['entry_id']}}_{{entry['entry_format']}}_{{entry['name']}}" style="background: none!important; 
                                                                                         border: none; 
                                                                                         padding: 0!important; 
                                                                                         font-family: arial, sans-serif; 
@@ -104,7 +119,8 @@
 
 
     <script>
-         
+
+        console.log("BBBBBBBBBBBBBBBBBBBBBBB")
 
         var search_by_mouse_window = document.getElementById("change-summary-entry-window");
         search_by_mouse_window.style.display = 'none';
@@ -116,31 +132,84 @@
         }
 
         var changeable_entries = document.getElementsByClassName("entry_changeable");
-
+        
         Array.from(changeable_entries).forEach((changeable_entry) => {
             changeable_entry.onclick = function() {
                 search_by_mouse_window.style.display = 'block';
                 var textInInputField = changeable_entry.innerHTML;
-                document.getElementById("modal_input_id").setAttribute('value', textInInputField);
+       
+                
                 var mouse_id_element = document.getElementById("mouse_id_data")
                 
                 var entry_format = document.getElementById("entry_format") 
-                
 
-                console.log("TRIPPLE PEACE")
-                console.log(entry_format)
-                console.log(entry_format.type)
-                
                 //in "value" we pass entry_id
                 var database_entry_id = changeable_entry.value 
+                var meta_data = database_entry_id.split("_")
+                var entry_id = meta_data[0]
+                var input_type = meta_data[1]
+                console.log(input_type)
+                var entry_name = meta_data[2]
 
-                console.log("FOUR TIMES PEACE")
-                console.log(database_entry_id)
+                function getMonthFromString(mon){
+                   return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
+                }
+                function getTimeNumber(time_row){
+                   let am_pm = time_row.substr(2)
+                   let time_number = time_row.substr(0, 2)
+                   if(am_pm == "pm" || am_pm == "PM") {
+                     if (parseInt(time_number) != 12) {
+                        time_number = parseInt(time_number) + 12
+                     }
+                   }
+                   return time_number
+                }
+
+                // if the type is datahour we transform the input text (data-time) to be appropriate for the parting in the input
+                if ( (input_type == "datehour") || (input_type == "datetime-local") ) {
+
+                    // input_type = "datetime-local"
+                    // "Wednesday, 05. October 2022 12PM" 
+                    // "2022-10-13T15:35"
+                    let data_time_entry_parsed = ""
+                    let data_time_values_row = textInInputField.split(" ")
+                    console.log(data_time_values_row)
+                    //year
+                    let year = data_time_values_row[3]
+                    data_time_entry_parsed = data_time_entry_parsed.concat("", year);
+                    //month
+                    let month = data_time_values_row[2]
+                    data_time_entry_parsed = data_time_entry_parsed.concat("-", getMonthFromString(month));
+                    //day
+                    let day = data_time_values_row[1].substr(0, data_time_values_row[1].length-1)
+                    data_time_entry_parsed = data_time_entry_parsed.concat("-", day);
+                    //time
+                    let time = getTimeNumber(data_time_values_row[4])
+                    
+                    
+                    if (input_type == "datetime-local") {
+                        data_time_entry_parsed = data_time_entry_parsed.concat("T", time + ":00");
+                    } else {
+                        data_time_entry_parsed = data_time_entry_parsed.concat("T", time);
+                    }
+                    textInInputField = data_time_entry_parsed
+                } else if (input_type == "bool") {
+                    input_type = "checkbox"
+                } else if (input_type == "range") {
+                    document.getElementById("modal_input_id").setAttribute('min', 0);
+                    document.getElementById("modal_input_id").setAttribute('max', 10);    
+                }
+                document.getElementById("label_for_input").innerHTML = entry_name;
+                document.getElementById("modal_input_id").setAttribute('value', textInInputField);
+                
+
 
                 var parameter_for_href = "{{ url_for('mouse.summary_edit_entry', entry_id=88888, mouse_id=99999) }}"
-                parameter_for_href = parameter_for_href.replace("88888", database_entry_id);
+                parameter_for_href = parameter_for_href.replace("88888", entry_id);
                 parameter_for_href = parameter_for_href.replace("99999", mouse_id_element.value);
                 document.getElementById("form_id_in_modal").setAttribute('action', parameter_for_href);
+                document.getElementById("modal_input_id").setAttribute('type', input_type);
+                
             }
         });
 

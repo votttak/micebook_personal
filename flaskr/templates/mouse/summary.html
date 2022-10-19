@@ -19,11 +19,11 @@
         <canvas id="line-chart"></canvas>
     </div>
     
-    
+
 
     {% for procedure in procedures %}
         <b>{{procedure['name']}}</b>
-        
+        <span><i>({{procedure['procedure_date']}})</i></span>
         <!-- save summary data to div and hide it, this data is used for script that plots the score-weight diagram -->
         <div id="summary-data" style="display: none;"> {{procedures}} </div>
 
@@ -37,9 +37,10 @@
             {% for entry in step['entries'] %}
                 {% if entry['name']=="Score" %}
                     <li><b>{{entry['name']}}: {{entry['content']}}</b>
+                {% elif entry['entry_format'] == 'range' %}
+                    <li>{{entry['name']}}: {{entry['content']}}/10
                 {% else %}
                     <li>{{entry['name']}}: {{entry['content']}}
-                
                 {% endif %}
             {% endfor %} 
             </ul>

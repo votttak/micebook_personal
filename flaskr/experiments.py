@@ -277,7 +277,6 @@ def update_severity_to_index(id):
 
 
 def _update_severity(id, next=False):
-    print("FUNCTION:_updata_severity")
     mouse = get_mouse(id)
     severity= mouse.severity
 
@@ -405,7 +404,6 @@ def get_experiment(id):
 @login_required
 def delete_experiment(experiment_id, mouse_id):
     experiment = get_experiment(experiment_id)
-    print(experiment_id)
     db.session.delete(experiment)
     db.session.commit()
     
@@ -480,8 +478,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
     current_step = Steps.query.filter(Steps.id==step_id).first()
     injection = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
 
-    # get_last_weight_for_drug_dosierung(mouse.id)
-    print(request.form)
     if current_step.name == steps_names[0]:
         pre_surgical_score_forms = [{'name':"Score", 'id':"score", 'type':"int"}, {'name':"Scoring hour", 'id':"score_time", 'type':"datetime-local", 'hours_precision':True, 'next_entry_in':timedelta(days=7)}]
 
@@ -494,8 +490,7 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             pre_surgical_score_forms.append({'name': 'Bodyweight (grams)', 'id': "Bodyweight (grams)", 'type':"float", 'reference_weight':True})
 
             next_step_args = {'name':steps_names[1], 'mouse_id':id, 'procedure_id':injection.id}    
-            print(00)
-            print(request.form)
+
             return readout(request.form, current_step, pre_surgical_score_forms, next_step_args)    
 
 
@@ -570,9 +565,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
         weight_from_scoring = get_last_ref_weight(mouse.id)
         anesthetic_ketamine_and_xylazine = ketmaine_xylazine_from_previous_step(mouse.id)
-        print("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
-        print(weight_from_scoring)
-        print("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
         surgery_protocol = [
             # {'name':"Anesthetic Injection Time", 'id':"inj_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
             {'name':"Anesthetic Induction Time", 'id':"inj_time", 'analgesia_amount': weight_from_scoring*0.01, 'anesthetic': anesthetic_ketamine_and_xylazine, 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}, 
@@ -632,7 +624,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
             elif entry.name=="DV Coordinate Virus 2":
                 CoordinateVirus2[2] = entry.content
             elif interprete(entry):
-                print(setup_reminder)
                 
 
                 def get_time_from_entries_for_bu_ca(ents):
@@ -654,7 +645,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
                     setup_reminder.append({'name':entry.name, 'value':interprete(entry) + " [Injection time: " + str(time_for_bu_ca) + "]"})
                 else:
                     setup_reminder.append({'name':entry.name, 'value':interprete(entry)})
-                print(setup_reminder)
 
         if "".join(CoordinateVirus1) != "":
             setup_reminder.append({'name':"Coordinates (AP/ML/DV) Virus 1", 'value':"/".join(CoordinateVirus1)})
@@ -670,14 +660,6 @@ def _injection_surgery(id, step_id, buffer_only=False): #experiment
 
         if request.method == 'POST':
             next_step_args = {'name': steps_names[3]+'_'+InjS_Scoring[0], 'mouse_id':id, 'procedure_id':injection.id}
-            print()
-            print(22)
-            print()
-            print(request.args)
-            print()
-            print(request.form)
-            print()
-            print(request.values)
             return readout(request.form, current_step, surgery_protocol, next_step_args, severity=True)
             
 
@@ -1066,13 +1048,6 @@ def _water_scheduling(id, step_id, buffer_only=False):
 
 def _scheduling(id, step_id, buffer_only=False, type=0): 
 
-    print("AABBCC_start")
-    print(id)
-    print(step_id)
-    print(buffer_only)
-    print(type)
-    print("AABBCC_end")
-
     '''
     type: 0 for food scheduling with controlled volume, 
     1 for food scheduling just with introducion time,
@@ -1091,15 +1066,7 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
     current_step = Steps.query.filter(Steps.id==step_id).first()
     procedure = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
 
-    print("QQQQQQQQQQQQQQQQQQQQQQQQQQQ")
-    print(scheduling_steps)
-    print(current_step)
-    print(current_step.name)
-    print(scheduling_steps[1])
-    print(scheduling_steps[1] in current_step.name)
-    print(scheduling_steps[0])
-    print(scheduling_steps[0] in current_step.name)
-    print("type: " + str(type))
+    
 
     if current_step.name == scheduling_steps[0]:
 
@@ -1121,8 +1088,7 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
         return display(args, reload_step=current_step, buffer=buffer_only)   
 
     elif scheduling_steps[1] in current_step.name:
-        print("AVA")
-        print(current_step.name)
+        
         init_weight = get_last_ref_weight(id)
         if type==0:
             weight_target = 0.9*init_weight
@@ -1328,8 +1294,7 @@ def _scheduling(id, step_id, buffer_only=False, type=0):
                             {'name':scheduling_operation+" time", 'id':"introduction_time", 'type':"datetime-local", 'next_entry_in':timedelta(days=1)}]
 
         previous_step = Steps.query.filter(Steps.procedure_id==procedure.id, Steps.id<step_id).order_by(desc(Steps.id)).first()
-        print("Current step: " + current_step.name)
-        print("Previous step: " + previous_step.name)
+        
         ad_libitum_option = True # Allow to use ad libitum in current step
         if "Ad Libitum" in current_step.name:
             scheduling_experiment_forms = [{'name':"Number of ad libitum days", 'id':"ad_libitum_days", 'type':"float"}]
@@ -1450,7 +1415,7 @@ def _non_scheduling_experiment(id, step_id, buffer_only=False):
 
 
     if request.method == 'POST':
-        print("8")
+        
         if request.form['direction'] and request.form['direction']=="end":
             procedure.finished = True
             db.session.commit()   
@@ -1466,7 +1431,6 @@ def _non_scheduling_experiment(id, step_id, buffer_only=False):
             next_step_args = {'name':'Experiment Recording '+str(experiment_number+1), 'mouse_id':id, 'procedure_id':procedure.id}
             if experiment_number==1:
                 experiment_forms.append({'name': 'Bodyweight (grams)', 'id': "Bodyweight (grams)", 'type':"float", 'reference_weight':True}) # Make the first weight a reference weight for scoring
-        print(9)
         return readout(request.form, current_step, experiment_forms, next_step_args=next_step_args)
 
     args = {'mouse':mouse, 'page_name':"Experiment Recording "+str(experiment_number), 'forms':experiment_forms, 'comment_required':True, 'enddable':True}

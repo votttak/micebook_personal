@@ -34,6 +34,7 @@ def register():
             flash(error)
 
         else:
+            # names = check__credentials(username, password)
             names = check_irats_credentials(username, password)
             if names is None:
                 flash('These credentials are not recognized by Irats. Please make sure you are using the same exact username and password to register or wait for Irats to be back online.')

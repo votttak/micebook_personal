@@ -478,7 +478,6 @@ def download_user_projects(user_id):
     driver.close()
 
 def download_licences_and_projects(user_id):
-    print("FUNCTION: download_licences_and_projects")
     driver = goto_iratsmain()
 
     driver.find_element_by_link_text("Licences").click()
@@ -560,18 +559,34 @@ def download_licences_and_projects(user_id):
 
     result_table_path = "//table[@class='taulu']/tbody"
     Projects_list = []
-    rows = len(driver.find_elements_by_xpath(result_table_path+"/tr"))
-    project_dict={'user_id':user_id}
-    for i in range(2,rows+1):
-        licence_number = driver.find_element_by_xpath(result_table_path+"/tr["+str(i)+"]/td[1]").text
-        licence = Licences.query.filter(Licences.number==licence_number).first()
-        if licence:
-            project_dict['licence_id'] = licence.id
-            project_dict['name']=driver.find_element_by_xpath(result_table_path+"/tr["+str(i)+"]/td[3]").text
-            project_dict['description']=driver.find_element_by_xpath(result_table_path+"/tr["+str(i)+"]/td[5]").text
-            Projects_list.append(Projects(**project_dict))
+    
 
-    for project in Projects_list:
+    
+
+    # iterate over two pages of projects
+    for p in range(2):
+        # go to the second page for the second iteration
+        if p == 1:
+            if driver.find_elements_by_xpath("//a[contains(text(), '21 - 40')]"): 
+                driver.find_elements_by_xpath("//a[contains(text(), '21 - 40')]")[0].click()
+                time.sleep(2)
+            else:
+                break
+    
+        
+
+        rows = len(driver.find_elements_by_xpath(result_table_path+"/tr"))
+        project_dict={'user_id':user_id}
+        for i in range(2,rows+1):
+            licence_number = driver.find_element_by_xpath(result_table_path+"/tr["+str(i)+"]/td[1]").text
+            licence = Licences.query.filter(Licences.number==licence_number).first()
+            if licence:
+                project_dict['licence_id'] = licence.id
+                project_dict['name']=driver.find_element_by_xpath(result_table_path+"/tr["+str(i)+"]/td[3]").text
+                project_dict['description']=driver.find_element_by_xpath(result_table_path+"/tr["+str(i)+"]/td[5]").text
+                Projects_list.append(Projects(**project_dict))
+
+    for project in Projects_list:    
         if not Projects.query.filter(Projects.name==project.name, Projects.user_id==project.user_id).first():
             db.session.add(project)
         else:

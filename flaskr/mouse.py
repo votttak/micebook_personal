@@ -73,6 +73,7 @@ def index(show_all=True):
             irats_id = request.form['irats_id']
             sql_request = text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)
             todo_mice = db.engine.execute(text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)).all()
+            
             ids = [mouse.mouse_id for mouse in todo_mice]
             todo_mice = add_next_action(todo_mice)
             euthanized_mice = Mice.query.filter(Mice.irats_id==irats_id, ~ Mice.id.in_(ids), and_(Mice.euthanized!=None, Mice.euthanized==True)).order_by(desc(Mice.id))
@@ -120,7 +121,27 @@ def index(show_all=True):
 
     unique_room_ids = sorted(unique_room_ids)
 
-    return render_template('mouse/index.html', todo_mice=todo_mice, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
+    ### put at top list User mices ### 
+    user_id = user_id = session.get('user_id')
+    user_name = Users.query.filter(Users.id==user_id).first().full_name
+
+    non_user_mices_index = []
+    todo_mice_sorted = []
+    for i, mice in enumerate(todo_mice):
+        if mice['investigator'] == user_name:
+            todo_mice_sorted.append(mice)
+        else: 
+            non_user_mices_index.append(i)
+
+    for i in non_user_mices_index:
+        todo_mice_sorted.append(todo_mice[i])
+    ###
+    
+    
+
+
+
+    return render_template('mouse/index.html', todo_mice=todo_mice_sorted, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
 
 @bp.route("/full_index", methods=('GET', 'POST'))
 @login_required
@@ -241,7 +262,8 @@ def mouse_summary(id):
     
     mouse_id_in_procedure = procedures[0].mouse_id
     for procedure in procedures:
-        procedure_dict = {'name':procedure.name,'steps':[]}
+        procedure_date = None
+        procedure_dict = {'name':procedure.name,'steps':[], 'procedure_date': "Not defined"}
         steps = Steps.query.filter(Steps.procedure_id==procedure.id).order_by(asc(Steps.id)).all()
         for step in steps:
             user = Users.query.filter(Users.id==step.user_id).first()
@@ -249,10 +271,23 @@ def mouse_summary(id):
             entries = Entries.query.filter(Entries.step_id==step.id).all()
             for entry in entries:
                 content = interprete(entry, display_mode=True)
+                print("NNNNNNNNNNNNNNNNNN")
+                print(entry.entry_format)
+                if entry.entry_format in ['datehour', 'datetime-local']:
+                    if procedure_date is None:
+                        procedure_date = entry.content
+                        # 2022-10-17T15
+                        procedure_date = procedure_date[0:10]
+                        print("BBBBBBBBBBBBBBBBBB")
+                        print("BBBBBBBBBBBBBBBBBB")
+                        print(procedure_date)
                 if content is not None:
-                    entry_dict = {'name':entry.name, 'content':content}
+                    entry_dict = {'name':entry.name, 'content':content, 'entry_format':entry.entry_format}
                     step_dict['entries'].append(entry_dict)
             procedure_dict['steps'].append(step_dict)
+        procedure_dict['procedure_date'] = procedure_date
+        print("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+        print(procedure_dict['procedure_date'])
         summary.append(procedure_dict)
     return render_template('mouse/summary.html', mouse=mouse, procedures=summary, mouse_id_in_procedure=mouse_id_in_procedure)
 
@@ -298,14 +333,9 @@ def summary_edit_entry(entry_id, mouse_id):
     entry = get_entry(entry_id)
     if request.method == "POST":
         new_entry_content = request.form['modal_input_id']
-        print(new_entry_content)
-        print("QQQQQQQQQQQQQIIIIIIIIIIIVVVVVVVVVV")
         entry.content = new_entry_content;
-        print(entry.content)
-        print("QQQQQQQQQQQQQIIIIIIIIIIIVVVVVVVVVV")
         db.session.query(Entries).filter(Entries.id == entry_id).update({"content":new_entry_content})
         db.session.commit()
-        print("END")
         return redirect(url_for('mouse.mouse_summary_edit', id=mouse_id))
     pass
     # virus = get_virus(virus_id)

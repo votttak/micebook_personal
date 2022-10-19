@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <!-- <script src="/static/js/moment.min.js"></script> -->
 <head>
+  <link rel="icon" href="{{url_for('static', filename='MicebookLogo_favicon.ico')}}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {{ moment.include_jquery() }}
   {{ moment.include_moment() }}
@@ -17,11 +18,17 @@
 </head>
 
 <nav>
+  
+  <img src="{{ url_for('static', filename='MicebookLogo.png')}}" style="float: left; margin-left: -15px; margin-right: 15px;" alt="logo" width="60" height="60"/>
   <h1>Micebook</h1>
   {% if g.user.admin_rights %}
-  
-  
-  
+
+    <form action="{{ url_for('mouse.full_index') }}" >
+      <input class="test" type="submit" value="All Mice">
+    </form> 
+
+  {% endif %}
+
   <form action="{{ url_for('coordinates.index') }}" >
     <input class="test" type="submit" value="Coordinates">
   </form>
@@ -30,11 +37,6 @@
     <input class="test" type="submit" value="Viruses">
   </form>
 
-  <form action="{{ url_for('mouse.full_index') }}" >
-    <input class="test" type="submit" value="All Mice">
-  </form> 
-
-  {% endif %}
   <form action="{{ url_for('mouse.index') }}" >
     <input class="test" type="submit" value="Index">
   </form> 
