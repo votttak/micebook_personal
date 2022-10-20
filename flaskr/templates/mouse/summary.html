@@ -5,15 +5,28 @@
 
 {% block header %}
 <h1>{% block title %}Procedures summary for Mouse {{ mouse['irats_id'] }}{% endblock %}</h1>
+<input id="hidden_mouse_id" type="text" value="{{ mouse['irats_id'] }}" hidden>
 {% endblock %}
 
 {% block content %}
 <!-- Print button for saving the summary in pdf -->
 <div>
     <br>
-    <button style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onClick="window.print()">Print experiment summary</button>
+    <button id="save_summary_button" style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onclick="document.title='Summary'; window.print();" >Print experiment summary</button>
     <a style="float: right; color: rgb(240, 14, 14);" class="action" href="{{ url_for('mouse.mouse_summary_edit', id=mouse_id_in_procedure) }}">Edit</a>
     </div>
+    
+    <!-- script for setting current date when saving summary -->
+    <script>
+        date = new Date();
+        year = date.getFullYear();
+        month = date.getMonth() + 1;
+        day = date.getDate();
+        today = day.toString() + "-" + month.toString() + "-" + year.toString();
+        mouse_id = document.getElementById("hidden_mouse_id").value
+        name_by_save = "document.title=" + "'Summary_" + mouse_id + "_" + today + "'; window.print();"
+        document.getElementById("save_summary_button").setAttribute('onclick', name_by_save);    
+    </script>
 
     <div class="plot">
         <canvas id="line-chart"></canvas>
@@ -23,7 +36,7 @@
 
     {% for procedure in procedures %}
         <b>{{procedure['name']}}</b>
-        <span><i>({{procedure['procedure_date']}})</i></span>
+        <span class="procedure_dates"><i>({{procedure['procedure_date']}})</i></span>
         <!-- save summary data to div and hide it, this data is used for script that plots the score-weight diagram -->
         <div id="summary-data" style="display: none;"> {{procedures}} </div>
 
@@ -48,9 +61,22 @@
         {% endfor %} 
         <br>
     {% endfor %} 
+    
 
 
     <script>
+
+        
+        //// extract dates for procedures
+        var procedure_dates = document.getElementsByClassName('procedure_dates')
+        var dates = [];
+        Array.from(procedure_dates).forEach((date_entry) => {
+            var date_string = date_entry.innerHTML.substr(4, 10)
+            dates.push(date_string)
+            console.log(dates)
+        })
+        ////
+
         // take string data and parse as json
         var data_raw = document.getElementById("summary-data").textContent;        
         data_raw = data_raw.replaceAll("'", '"')
@@ -75,7 +101,7 @@
             for (let i = 0; i < num_steps; ++i) {
                 var current_step = steps[i];
                 if (i == 0) {
-                    step_names.push(current_step['name'] + " (procedure_" + (p+1).toString() + ")");
+                    step_names.push(current_step['name'] + " (pr" + (p+1).toString() + ") " + dates[p]);
                 } else {
                     step_names.push(current_step['name']);
                 }
@@ -114,7 +140,7 @@
 
             // console.log(current_step['name'] + " (procedure_" + (p+1).toString() + ")")
 
-            procedure_first_steps.push(current_step['name'] + " (procedure_" + (p+1).toString() + ")");
+            procedure_first_steps.push(current_step['name'] + " (pr" + (p+1).toString() + ") " + dates[p]);
             // procedure_first_steps.push(current_step['name']);
         }
 
@@ -187,23 +213,6 @@
                     ]
                 }
 
-        // var data =  {
-        //             labels: step_names,
-        //             datasets: [{ 
-        //                 data: step_scores,
-        //                 label: "Score",
-        //                 borderColor: "#3e95cd",
-        //                 fill: true,
-        //                 yAxisID: "score_line_id"
-        //             }, {    
-        //                 data: step_weights,
-        //                 label: "Bodyweight (grams)",
-        //                 borderColor: "#8e5ea2",
-        //                 fill: true
-        //             }
-        //             ]
-        //         }
-
 
         new Chart(document.getElementById("line-chart"), {
             type: 'line',
@@ -213,47 +222,3 @@
     </script>
     
 {% endblock %}
-<!-- 
-options: {
-
-    plugins: {
-      autocolors: false,
-      annotation: {
-        annotations: {
-          line1: {
-            type: 'line',
-            yMin: 11,
-            yMax: 12,
-            borderColor: 'rgb(255, 99, 132)',
-            borderWidth: 3,
-          }
-        }
-      }
-    },
-    
-
-    // title: {
-    //     display: true,
-    //     text: 'Score vs. Weight'
-    // },
-
-    // scales: {
-    //     y: {
-    //         title: "SOME_TITLE",
-    //         type: 'linear',
-    //         display: true,
-    //         position: 'left',
-    //         },
-    //     y1: {
-    //         type: 'linear',
-    //         display: true,
-    //         position: 'right',
-        
-    //         // grid line settings
-    //         grid: {
-    //             drawOnChartArea: false, // only want the grid lines for one axis to show up
-    //         },
-    //     },
-    // },
-    
-} -->

@@ -96,34 +96,45 @@ def check_irats_credentials(username, password):
 
     log_attempts=0
     connected = False
+
+
     while not connected and log_attempts<2:
         username_entry = driver.find_element_by_name("userName")
         password_entry = driver.find_element_by_name("passwd")
 
         username_entry.send_keys(username)
         password_entry.send_keys(password)
-
         driver.find_element_by_name("loginButton").click()
 
         wait = 0
-        while not "Animal Interface" in driver.title and wait<20:
+        # "Animal Interface" is for English interface, "Tierverwaltung" for German
+        while not (("Animal Interface" in driver.title) or ("Tierverwaltung" in driver.title)) and wait<20:
             time.sleep(0.1)
             wait +=1
         
-        if "Animal Interface" in driver.title:
+        print(driver.title)
+        if ("Animal Interface" in driver.title) or ("Tierverwaltung" in driver.title):
             connected = True
         else:
             connected = False
 
         log_attempts+=1
         
+    
     if connected:
-
         time.sleep(2)
-        driver.find_element_by_link_text("Personal information").click()
-        first_name = driver.find_element_by_xpath("//*[.='First name: ']/following-sibling::td").text
-        last_name = driver.find_element_by_xpath("//*[.='Family name: ']/following-sibling::td").text
-        driver.find_element_by_link_text("Log out").click()
+        # check whether the language is German
+        if driver.title == "Tierverwaltung":
+            driver.find_element_by_link_text("Persönliche Information").click()
+            first_name = driver.find_element_by_xpath("//*[.='Vorname: ']/following-sibling::td").text
+            last_name = driver.find_element_by_xpath("//*[.='Nachname: ']/following-sibling::td").text
+            driver.find_element_by_link_text("Ausloggen").click()
+        else:
+            driver.find_element_by_link_text("Personal information").click()
+            first_name = driver.find_element_by_xpath("//*[.='First name: ']/following-sibling::td").text
+            last_name = driver.find_element_by_xpath("//*[.='Family name: ']/following-sibling::td").text
+            driver.find_element_by_link_text("Log out").click()
+            
         time.sleep(0.1)
         driver.close()
         return [first_name, last_name]
