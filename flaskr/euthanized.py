@@ -66,70 +66,22 @@ def index(show_all=True):
     todo_mice_sql = """SELECT *, TO_TIMESTAMP(step.content, 'YYYY-MM-DD"T"HH24:MI') + step.next_entry_in AS next_operation FROM mice JOIN (SELECT DISTINCT ON (mouse_id) *FROM ( SELECT *FROM steps JOIN      (SELECT  *FROM      entries WHERE  id in (SELECT MAX(id) FROM entries WHERE next_entry_in IS NOT NULL GROUP BY step_id)) e ON (e.step_id = steps.id) ) AS lastentries ORDER BY mouse_id, step_id DESC) step ON (mice.id=step.mouse_id) WHERE mice.id not in (SELECT mouse_id FROM steps WHERE name = 'Euthanasia') """
     order_by_sql =    """ ORDER BY next_operation;"""
 
-    if request.method=='POST':
-        print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_1111111111111111111111111111")
-        if 'irats_id' in request.form:
-            
-            todo_mice = []
-            ids = []
-            euthanized_mice = Mice.query.filter(~ Mice.id.in_(ids), and_(Mice.euthanized!=None, Mice.euthanized==True)).order_by(desc(Mice.id)).all()
-            licenced_mice = Mice.query.filter(Mice.experiment == None, ~ Mice.id.in_(ids), Mice.euthanized!=None, Mice.euthanized==True).order_by(desc(Mice.id))
-            all_mice = Mice.query.filter(Mice.experiment == None, ~ Mice.id.in_(ids), Mice.euthanized!=None, Mice.euthanized==True).order_by(desc(Mice.id))
-            
-
-        elif 'cage' in request.form:
-            
-            cage = request.form['cage']
-            todo_mice = db.engine.execute(text(todo_mice_sql + """AND cage='""" + str(cage) + """'""" + order_by_sql)).all()
-            ids = [mouse.mouse_id for mouse in todo_mice]
-            todo_mice = add_next_action(todo_mice)
-            euthanized_mice = Mice.query.filter(Mice.cage==cage, ~ Mice.id.in_(ids), and_(Mice.euthanized!=None, Mice.euthanized==True)).order_by(desc(Mice.id))
-            licenced_mice = Mice.query.filter(Mice.experiment!=None, Mice.cage==cage, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
-            all_mice = Mice.query.filter(Mice.experiment==None, Mice.cage==cage, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
     
     
-    # if request.method=='POST':
-    #     print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_1111111111111111111111111111")
-
-    #     print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_2222222222222222222222222222")
-    #     # todo_mice = db.engine.execute(text(todo_mice_sql + """AND euthanized=True""" +  order_by_sql)).all()
-    #     irats_id = request.form['irats_id']
-    #     todo_mice = db.engine.execute(text(todo_mice_sql + """AND irats_id='""" + str(irats_id) + """'""" +  order_by_sql)).all()
-    #     print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_2222222222222222222222222222_0000000000000000000000000")
-    #     print(todo_mice)
-    #     ids = [mouse.mouse_id for mouse in todo_mice]
-    #     todo_mice = add_next_action(todo_mice)
-        
-    #     print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_3333333333333333333333333333")
-    #     print(todo_mice)
-    #     print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_3333333333333333333333333333_222222222222222222222222222")
-
-    #     euthanized_mice = Mice.query.filter(~Mice.id.in_(ids), and_(Mice.euthanized != None, Mice.euthanized==True)).order_by(desc(Mice.id)).all()
-    #     euthanized_mice = add_next_action(euthanized_mice)
-    #     print(euthanized_mice)
-    #     # licenced_mice = Mice.query.filter(Mice.experiment!=None, Mice.irats_id==irats_id, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
-    #     # all_mice = Mice.query.filter(Mice.experiment==None, Mice.irats_id==irats_id, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
+    
+    
+    
+    
+    todo_mice = []
+    ids = []
+    euthanized_mice = Mice.query.filter(~ Mice.id.in_(ids), and_(Mice.euthanized!=None, Mice.euthanized==True)).order_by(desc(Mice.id)).all()
+    licenced_mice = Mice.query.filter(Mice.experiment == None, ~ Mice.id.in_(ids), Mice.euthanized!=None, Mice.euthanized==True).order_by(desc(Mice.id))
+    all_mice = Mice.query.filter(Mice.experiment == None, ~ Mice.id.in_(ids), Mice.euthanized!=None, Mice.euthanized==True).order_by(desc(Mice.id))
             
 
-        
 
-    else:
-        print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_44444444444444444444444444444444")
-        user_id = session.get('user_id')
-        user = Users.query.filter(Users.id==user_id).first()
-        if show_all and user.admin_rights:
-            todo_mice = db.engine.execute(text(todo_mice_sql +  order_by_sql)).all()
-        else:
-            user_name = user.full_name
-            todo_mice = db.engine.execute(text(todo_mice_sql + """AND investigator='""" + str(user_name) + """'""" +  order_by_sql)).all()
-        ids = [mouse.mouse_id for mouse in todo_mice]
-        print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_55555555555555555555555555555555555")
-        todo_mice = add_next_action(todo_mice)
-        print(todo_mice[0])
-        print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_66666666666666666666666666666666666")
-        licenced_mice = Mice.query.filter(Mice.experiment!=None, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True), Mice.investigator==user.full_name).order_by(desc(Mice.id))
-        euthanized_mice = []
-        all_mice = []
+
+
 
     unique_room_ids = set()
     rooms_to_exclude = ['WAF F114 (OHB)', 'WAF G141 (EXP)', 'Y55F33']
