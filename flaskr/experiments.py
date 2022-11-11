@@ -1494,12 +1494,14 @@ scoring_steps = ['Scoring']
 @bp.route('/<int:id>/scoring/<int:step_id>', methods=('GET', 'POST')) 
 @login_required
 def scoring(id, step_id):
+    print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEE_11111111111111111111111111111111")
     setup_global_vars(id, step_id, 'experiments.scoring')
     return _scoring(id, step_id)
     
 def _scoring(id, step_id, buffer_only=False):
+    print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEE_22222222222222222222222222222222")
     mouse = get_mouse(id)
-
+    
     current_step = Steps.query.filter(Steps.id==step_id).first()
     procedure = Procedures.query.filter(Procedures.id==current_step.procedure_id).first()
 
@@ -1523,7 +1525,6 @@ def _scoring(id, step_id, buffer_only=False):
 
 
 #### CHANGE WHEN NEW ACTIONS ADDED
-# Vadim
 Procedures_names = ['Injection Surgery', 'Protein Expression Check', 'Baseplating',  'Handling', 'Scoring', 'Food Scheduling fixed amount', 'Food Scheduling fixed time', 'Water Scheduling', 'Non Scheduling Experiment', 'Euthanasia']
 #Procedures_names = ['Surgery', 'Protein Expression Check', 'Baseplating',  'Handling', 'Scoring', 'Food Scheduling fixed amount', 'Food Scheduling fixed time', 'Water Scheduling', 'Non Scheduling Experiment', 'Euthanasia']
 
@@ -1564,6 +1565,7 @@ def set_reference_weight_to_false(mouse_id):
 @bp.route('/<int:id>/start_experiment', methods=('GET', 'POST')) #/<int:id>/<experiment>/
 @login_required
 def start_experiment(id):
+    print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
     mouse = get_mouse(id)
     def get_template(action):
         template_name = ""
@@ -1575,16 +1577,25 @@ def start_experiment(id):
     experiment = mouse.experiment
     last_procedure = db.session.query(Procedures).filter(Procedures.mouse_id==id, ~Procedures.finished).order_by(desc(Procedures.id)).first()
     if last_procedure:
+        print("QQQQQQQQQQQQQQQQQQQQQQQQ_111111111111111111")
         template_name = get_template(last_procedure.name)
+        print("QQQQQQQQQQQQQQQQQQQQQQQQ_222222222222222222")
         step = Steps.query.filter(Steps.mouse_id==id, Steps.procedure_id==last_procedure.id).order_by(desc(Steps.id)).first()
         if not step:
+            print("QQQQQQQQQQQQQQQQQQQQQQQQ_333333333333333333")
             step_args = {'name': Steps_names[last_procedure.name][0], 'mouse_id':id, 'procedure_id':last_procedure.id, 'user_id':session['user_id']}
             step = Steps(**step_args)
             db.session.add(step)
             db.session.commit()
+            print("QQQQQQQQQQQQQQQQQQQQQQQQ_444444444444444444")
+            print(template_name)
         return redirect(url_for('experiments.'+template_name, id=mouse.id, step_id=step.id)) 
+    print("QQQQQQQQQQQQQQQQQQQQQQQQ_555555555555555555")
     experiment_actions = db.session.query(Experiment_actions.name).filter(Experiment_actions.experiment_id==experiment).subquery()
+    print("QQQQQQQQQQQQQQQQQQQQQQQQ_666666666666666666")
     last_procedure = db.session.query(Procedures).filter(Procedures.mouse_id==id,  Procedures.name.in_(experiment_actions)).order_by(desc(Procedures.id)).first()      
+    print("QQQQQQQQQQQQQQQQQQQQQQQQ_777777777777777777")
+    
     if not last_procedure:
         procedure = next_procedure(id)
         # set "refrence_weight" to "false" in db "entries"
@@ -1607,10 +1618,14 @@ def start_experiment(id):
 @bp.route('/<int:id>/select_next_procedure/<procedure_name>', methods=('GET', 'POST'))
 @login_required
 def select_next_procedure(id, procedure_name):
+    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+    print(procedure_name)
+    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
     procedure = Procedures(procedure_name, id, False)
+    print(procedure.mouse_id)
     db.session.add(procedure)
     db.session.commit()
-
+    print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
     return redirect(url_for('experiments.start_experiment', id=id))
 
 @bp.route('/<int:id>/design_experiment', methods=('GET', 'POST'))

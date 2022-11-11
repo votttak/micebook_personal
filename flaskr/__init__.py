@@ -61,6 +61,9 @@ def create_app(test_config=None):
     
     from . import coordinates
     app.register_blueprint(coordinates.bp) 
+    
+    from . import euthanized
+    app.register_blueprint(euthanized.bp) 
 
     return app
 

@@ -39,14 +39,22 @@
 
   <form action="{{ url_for('mouse.index') }}" >
     <input class="test" type="submit" value="Index">
-  </form> 
+  </form>
+
+  <form action="{{ url_for('euthanized.index') }}" >
+    <input class="test" type="submit" value="Euthanized">
+  </form>
+
   {% if mouse and step %} 
+
     <form  action="{{ url_for('experiments.go_back', id=mouse.id) }}" >
       <input class="test" type="submit" value="Go back">
     </form> 
+    
     <form  action="{{ url_for('experiments.start_experiment', id=mouse.id) }}">
       <input class="test" type="submit" value="Go to current">
     </form> 
+
   {% endif %}
 
   <ul>

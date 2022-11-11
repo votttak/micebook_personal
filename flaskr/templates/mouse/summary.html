@@ -10,11 +10,16 @@
 
 {% block content %}
 <!-- Print button for saving the summary in pdf -->
-<div>
-    <br>
-    <button id="save_summary_button" style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onclick="document.title='Summary'; window.print();" >Print experiment summary</button>
-    <a style="float: right; color: rgb(240, 14, 14);" class="action" href="{{ url_for('mouse.mouse_summary_edit', id=mouse_id_in_procedure) }}">Edit</a>
+
+    <div>
+        <br>
+        <button id="save_summary_button" style="background-color: #008CBA; color: rgb(255, 255, 255); border-radius: 12px;" onclick="document.title='Summary'; window.print();" >Print experiment summary</button>
     </div>
+{% if g.user.admin_rights %}
+    <div>
+        <a style="float: right; color: rgb(240, 14, 14);" class="action" href="{{ url_for('mouse.mouse_summary_edit', id=mouse_id_in_procedure) }}">Edit</a>
+    </div>
+{% endif %}
     
     <!-- script for setting current date when saving summary -->
     <script>
@@ -22,9 +27,9 @@
         year = date.getFullYear();
         month = date.getMonth() + 1;
         day = date.getDate();
-        today = day.toString() + "-" + month.toString() + "-" + year.toString();
+        today =  year.toString() + month.toString() + day.toString();
         mouse_id = document.getElementById("hidden_mouse_id").value
-        name_by_save = "document.title=" + "'Summary_" + mouse_id + "_" + today + "'; window.print();"
+        name_by_save = "document.title=" + "'" + mouse_id + "_" + today + "'; window.print();"
         document.getElementById("save_summary_button").setAttribute('onclick', name_by_save);    
     </script>
 
@@ -72,7 +77,11 @@
         var dates = [];
         Array.from(procedure_dates).forEach((date_entry) => {
             var date_string = date_entry.innerHTML.substr(4, 10)
-            dates.push(date_string)
+            if (date_entry.innerHTML.substr(4, 4) != "None") {
+                dates.push("[" + date_string + "]")
+            } else {
+                dates.push("[No date]")
+            }
             console.log(dates)
         })
         ////
