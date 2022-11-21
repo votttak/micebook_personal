@@ -42,6 +42,11 @@ def time_display(delta):
 @login_required
 # def index(show_all=False):
 def index(show_all=True):
+    print("INEX IN MOUSE.PY")
+    print("INEX IN MOUSE.PY")
+    print("INEX IN MOUSE.PY")
+    print("INEX IN MOUSE.PY")
+    print("INEX IN MOUSE.PY")
     def add_next_action(row):
         mice = []
         for mouse in row:
@@ -91,6 +96,8 @@ def index(show_all=True):
         elif 'cage' in request.form:
             print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK_222222222222222222222222222222")
             cage = request.form['cage']
+            print(cage)
+            print(type(cage))
             todo_mice = db.engine.execute(text(todo_mice_sql + """AND cage='""" + str(cage) + """'""" + order_by_sql)).all()
             ids = [mouse.mouse_id for mouse in todo_mice]
             todo_mice = add_next_action(todo_mice)
@@ -147,6 +154,113 @@ def index(show_all=True):
         todo_mice_sorted.append(todo_mice[i])
 
     return render_template('mouse/index.html', todo_mice=todo_mice_sorted, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
+
+
+
+
+
+
+
+
+@bp.route('/cage/<int:cage_number>', methods=('GET', 'POST'))
+@login_required
+# def index(show_all=False):
+def mice_in_cage(cage_number, show_all=True):
+    
+
+    todo_mice_sql = """SELECT *, TO_TIMESTAMP(step.content, 'YYYY-MM-DD"T"HH24:MI') + step.next_entry_in AS next_operation FROM mice JOIN (SELECT DISTINCT ON (mouse_id) *FROM ( SELECT *FROM steps JOIN      (SELECT  *FROM      entries WHERE  id in (SELECT MAX(id) FROM entries WHERE next_entry_in IS NOT NULL GROUP BY step_id)) e ON (e.step_id = steps.id) ) AS lastentries ORDER BY mouse_id, step_id DESC) step ON (mice.id=step.mouse_id) WHERE mice.id not in (SELECT mouse_id FROM steps WHERE name = 'Euthanasia') """
+    order_by_sql =    """ ORDER BY next_operation;"""
+
+    def add_next_action(row):
+        mice = []
+        for mouse in row:
+            mouse = dict(mouse)
+            last_procedure = db.session.query(Procedures).filter(Procedures.mouse_id==mouse['mouse_id'], ~Procedures.finished).order_by(desc(Procedures.id)).first()
+            if last_procedure and last_procedure.name:
+                mouse['action'] = "Current step is " + last_procedure.name
+                next_step = Steps.query.filter(Steps.procedure_id==last_procedure.id).order_by(desc(Steps.id)).first()
+                # next_step = Functions[last_procedure.name](mouse['mouse_id'], next_step_only=True)
+                if next_step:
+                    mouse['next_step'] = next_step.name
+                else:
+                    mouse['next_step'] = Steps_names[last_procedure.name][0]
+                    
+            else:
+                last_procedure = db.session.query(Procedures).filter(Procedures.mouse_id==mouse['mouse_id']).order_by(desc(Procedures.id)).first()
+                if last_procedure.name:
+                    mouse['next_step'] = 'action'
+                    mouse['action'] = "Just finished " + last_procedure.name
+            mouse['next_operation'], mouse['color'] = time_display(mouse['next_operation'].date() - datetime.today().date())
+            mice.append(mouse)
+        return mice
+
+    cage = str(cage_number)
+    
+
+
+    todo_mice = db.engine.execute(text(todo_mice_sql + """AND cage='""" + str(cage) + """'""" + order_by_sql)).all()
+    ids = [mouse.mouse_id for mouse in todo_mice]
+    todo_mice = add_next_action(todo_mice)
+    euthanized_mice = Mice.query.filter(Mice.cage==cage, ~ Mice.id.in_(ids), and_(Mice.euthanized!=None, Mice.euthanized==True)).order_by(desc(Mice.id))
+    licenced_mice = Mice.query.filter(Mice.experiment!=None, Mice.cage==cage, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
+    all_mice = Mice.query.filter(Mice.experiment==None, Mice.cage==cage, ~ Mice.id.in_(ids), or_(Mice.euthanized==None, Mice.euthanized!=True)).order_by(desc(Mice.id))
+
+
+    unique_room_ids = set()
+    rooms_to_exclude = ['WAF F114 (OHB)', 'WAF G141 (EXP)', 'Y55F33']
+    mouses = Mice.query.all()
+    for mouse in mouses:
+        if mouse.room_id is None:
+            unique_room_ids.add("Empty")
+        else:
+            if mouse.room_id in rooms_to_exclude:
+                continue
+            unique_room_ids.add(mouse.room_id)
+
+    unique_room_ids = sorted(unique_room_ids)
+
+
+    print("EEEEEEEEEEEEEEEEEEEEEEEEE")
+    print("EEEEEEEEEEEEEEEEEEEEEEEEE")
+    print("EEEEEEEEEEEEEEEEEEEEEEEEE")
+   
+
+
+    ### put at top list User mices ### 
+    user_id = user_id = session.get('user_id')
+    user_name = Users.query.filter(Users.id==user_id).first().full_name
+
+
+    print("YYYYYYYYYYYYYYYYYYY")
+    print("YYYYYYYYYYYYYYYYYYY")
+    print("YYYYYYYYYYYYYYYYYYY")
+    print("YYYYYYYYYYYYYYYYYYY")
+    
+    non_user_mices_index = []
+    todo_mice_sorted = []
+    for i, mice in enumerate(todo_mice):
+        if mice['investigator'] == user_name:
+            todo_mice_sorted.append(mice)
+        else: 
+            non_user_mices_index.append(i)
+
+    for i in non_user_mices_index:
+        todo_mice_sorted.append(todo_mice[i])
+
+    print("EEEEEEEEEEEEEEEEEEE")
+    print("EEEEEEEEEEEEEEEEEEE")
+    print("EEEEEEEEEEEEEEEEEEE")
+    print("EEEEEEEEEEEEEEEEEEE")
+
+    return render_template('mouse/index.html', todo_mice=todo_mice_sorted, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
+
+
+
+
+
+
+
+
 
 @bp.route("/full_index", methods=('GET', 'POST'))
 @login_required

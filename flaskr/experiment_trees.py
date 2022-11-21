@@ -6,9 +6,6 @@ from sqlalchemy import desc
 print("---------------IN EXPERIMENT_TREES---------------")
 
 def next_step(procedure, steps):
-    print("FUNCTION: next_step")
-    print("STEPS")
-    print(steps)
     last_step = Steps.query.filter(Steps.procedure_id == procedure.id).order_by(desc(Steps.id)).first()
     if not last_step:
         return steps[0]
@@ -24,7 +21,6 @@ def next_step(procedure, steps):
 
 
 def next_procedure(id, last_action=None):
-    print("FUNCTION: next_procedure")
     mouse = Mice.query.filter(Mice.id==id).first()
     experiment = mouse.experiment
     if not last_action:
@@ -38,7 +34,7 @@ def next_procedure(id, last_action=None):
 
     next_actions = []
     actions = Experiment_actions.query.filter(Experiment_actions.experiment_id==experiment, Experiment_actions.index==index).all()
-    print('actions', actions)
+
     if not actions:
         return 'dead'
     for action in actions:

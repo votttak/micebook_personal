@@ -89,20 +89,31 @@
              .appendTo("#entries");
      };
    </script>
+   
    <script>
      function next() {
        $("<input />").attr("type", "hidden")
               .attr("name", "direction")
               .attr("value", "next")
               .appendTo("#entries");
-      };
-    </script>
-   <script>
-    function skip() {
-       $("<input />").attr("type", "hidden")
+      };  
+    </script>  
+  
+  <script>
+    function to_cage() {
+      $("<input />").attr("type", "hidden")
              .attr("name", "direction")
-             .attr("value", "skip")
+             .attr("value", "to_cage")
              .appendTo("#entries");
+     };  
+   </script>  
+
+   <script>  
+    function skip() {  
+       $("<input />").attr("type", "hidden")  
+             .attr("name", "direction")  
+             .attr("value", "skip")  
+             .appendTo("#entries");      
      };
 
      function easy_peasy() {

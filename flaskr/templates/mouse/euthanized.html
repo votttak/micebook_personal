@@ -7,7 +7,7 @@
 
 {% block content %}
 
-  <div>
+  <!-- <div>
     
     
   <!--<form method="POST">
@@ -17,7 +17,7 @@
     </div>
   </form> -->
 
-  <button type="button" id="search-by-mouse-btn">Search by Mouse</button>
+  <!-- <button type="button" id="search-by-mouse-btn">Search by Mouse</button>
 
   <div id="search-by-mouse-window" class="modal">
     <div class="modal-content">
@@ -58,10 +58,10 @@
     {
       search_by_mouse_window.style.display = 'none';
     }
-  </script>
+  </script> -->
 
 
-  <form method="POST">
+  <!-- <form method="POST">
     <div>
     <input type="text" name="cage" id="autocomplete2" required type="text" value="" placeholder="Search Cage Number">
     <input type="submit" value="Search by Cage">
@@ -72,9 +72,9 @@
     <form action="{{ url_for('mouse.reload') }}" >
       <input type="submit" value="Reload Mice from Irats (might take a few minutes)">
     </form> 
-  </div>
+  </div> -->
   
-    <script>
+    <!-- <script>
       function get_room_filter() {
         var checkboxes = document.getElementsByClassName('room-id-checkbox')
 
@@ -125,9 +125,9 @@
           }
         }
     }, 5000);
-    </script>
+    </script> -->
 
-    <script>
+    <!-- <script>
       $('#autocomplete2').autocomplete({
        serviceUrl: '/search/cage',
        dataType: 'json',
@@ -137,7 +137,7 @@
        });
     </script>
   
-  </div>
+  </div> -->
 
   {% for mouse in todo_mice %}
   <article class="mouse">

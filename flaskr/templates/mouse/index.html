@@ -17,7 +17,13 @@
     </div>
   </form> -->
 
-  <button type="button" id="search-by-mouse-btn">Search by Mouse</button>
+  <div>
+    <form style="direction: rtl;" action="{{ url_for('experiments.reload_licences_and_projects_from_index') }}" >
+      <input type="submit" value="Reload Licences and Projects from Irats (might take a few minutes)">
+    </form> 
+    <button type="button" id="search-by-mouse-btn">Search by Mouse</button>
+  </div>
+
 
   <div id="search-by-mouse-window" class="modal">
     <div class="modal-content">

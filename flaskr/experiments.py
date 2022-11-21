@@ -55,6 +55,14 @@ def reload_licences_and_projects(id):
     return redirect(url_for('experiments.design_experiment', id=id))
 
 
+@bp.route("/reload_licences_and_projects", methods=('GET', 'POST'))
+@login_required
+def reload_licences_and_projects_from_index():
+    user_id = session.get('user_id')
+    download_licences_and_projects(user_id)
+    return redirect(url_for('mouse.index'))
+
+
 
 def minimize(name):
     template_name = ""
@@ -183,7 +191,6 @@ def get_last_weight(mouse_id):
         return jsonify({"lastweight":None})
 
 
-
 def get_last_ref_weight(mouse_id):
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
     weight_entry = db.session.query(Entries).filter(Entries.step_id.in_(actions),  Entries.reference_weight).order_by(desc(Entries.id)).first() 
@@ -198,6 +205,7 @@ def get_last_ref_weight(mouse_id):
     else:
         return "HERE_HERE_2"
         return None
+
 
 def ketmaine_xylazine_from_previous_step(mouse_id):
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id).subquery()
@@ -223,7 +231,6 @@ def get_virus_construct(virus_name):
         return None
 
 
-
 @bp.route('/get_coordinates_by_name/<coordinates_name>', methods=('GET', 'POST'))
 @login_required
 def get_coordinates_by_name(coordinates_name):
@@ -240,7 +247,6 @@ def get_coordinates_by_name(coordinates_name):
     else: 
         return jsonify({"ap_coordinate": ap_coordinate, "ml_coordinate": ml_coordinate, "dv_coordinate": dv_coordinate})
     
-
 
 def get_last_time_schedule(mouse_id, current_step):
     actions = db.session.query(Steps.id).filter(Steps.mouse_id==mouse_id, Steps.id<current_step.id).subquery()
@@ -267,7 +273,6 @@ def get_last_weight_for_drug_dosierung(mouse_id):
 @login_required
 def update_severity_to_next(id):
     return _update_severity(id, next=True)
-
 
 
 @bp.route('/<int:id>/update_severity_to_index', methods=('GET', 'POST'))
@@ -299,12 +304,38 @@ def _update_severity(id, next=False):
 
 
 def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = None, severity=False):
+    print("READOUT IN EXPERIMENTS.PY READOUT IN EXPERIMENTS.PY")
+    print("READOUT IN EXPERIMENTS.PY READOUT IN EXPERIMENTS.PY")
+    print("READOUT IN EXPERIMENTS.PY READOUT IN EXPERIMENTS.PY")
+    print("READOUT IN EXPERIMENTS.PY READOUT IN EXPERIMENTS.PY")
+    print("READOUT IN EXPERIMENTS.PY READOUT IN EXPERIMENTS.PY")
+
 
     if isinstance(forms, dict):
         forms = forms.to_dict(flat=True)
     if extra_entries:
         forms.update(extra_entries)
     
+
+    print("FORMS")
+    print("FORMS")
+    print("FORMS")
+    print(forms)
+    
+
+    print("STEP.MOUSE_ID")
+    print("STEP.MOUSE_ID")
+    print("STEP.MOUSE_ID")
+    print(step.mouse_id)
+    mouse_in_work = Mice.query.filter(Mice.id == step.mouse_id).first()
+    print(mouse_in_work)
+    print(mouse_in_work.cage)
+
+    print("ENTRIES_DICTS")
+    print("ENTRIES_DICTS")
+    print("ENTRIES_DICTS")
+    print(entries_dicts)
+
     #Prepare next step if there isn't already a created next step for this procedure
     if next_step_args:
         next_step = Steps.query.filter(Steps.procedure_id==step.procedure_id, Steps.name==next_step_args['name'], Steps.id>step.id).first()
@@ -332,7 +363,7 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
         step.comment="Skipped"
         db.session.commit()
 
-    elif not (direction in ['next', 'index', 'nothing']): # corresponds to special directions
+    elif not (direction in ['next', 'index', 'nothing', 'to_cage']): # corresponds to special directions
         inputs = {'step_id':step.id}
         inputs['content'] = True
         inputs['name'] = direction
@@ -367,20 +398,55 @@ def readout(forms, step, entries_dicts, next_step_args=None, extra_entries = Non
                             inputs['content'] = hour_time
                         break
                 db.session.add(Entries(**inputs))
+        print("WWWWWWWWWWWWWWWWWW")
+        print("WWWWWWWWWWWWWWWWWW")
+        print("WWWWWWWWWWWWWWWWWW")
+        print("WWWWWWWWWWWWWWWWWW")
+        print("WWWWWWWWWWWWWWWWWW")
         db.session.commit()
 
 
     if direction == 'nothing':
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
+        print("HERE")
         global last_id
         global last_step_id
         global last_url
         return redirect(url_for(last_url, id=last_id, step_id=last_step_id))
 
+    print("PPPPPPPPPPP")
+    print("PPPPPPPPPPP")
+    print("PPPPPPPPPPP")
+    print("PPPPPPPPPPP")
+    print("PPPPPPPPPPP")
+    print("PPPPPPPPPPP")
+    print(severity)
     # Redirects to next page
     if not severity:
         if direction == 'next':
             return redirect(url_for('experiments.start_experiment', id=step.mouse_id))
+        elif direction == 'to_cage':
+            print("LLLLLLLLLL")
+            print("LLLLLLLLLL")
+            print("LLLLLLLLLL")
+            print("LLLLLLLLLL")
+            print("LLLLLLLLLL")
+            mouse_in_work = Mice.query.filter(Mice.id == step.mouse_id).first()
+            return redirect(url_for('mouse.mice_in_cage', cage_number=mouse_in_work.cage))
         else:
+            print("ZZZZZZZZZ")
+            print("ZZZZZZZZZ")
+            print("ZZZZZZZZZ")
+            print("ZZZZZZZZZ")
+            print("ZZZZZZZZZ")
             return redirect(url_for('mouse.index'))
     else:
         if direction == 'next':
@@ -939,6 +1005,7 @@ def protein_expression_check(id, step_id):
     setup_global_vars(id, step_id, 'experiments.protein_expression_check')
     return _protein_expression_check(id, step_id)
 
+
 def _protein_expression_check(id, step_id, buffer_only=False):
     mouse = get_mouse(id)
 
@@ -978,7 +1045,6 @@ def _protein_expression_check(id, step_id, buffer_only=False):
     args = {'mouse':mouse, 'page_name':"Scoring & Protein Expression Check", 'forms':health_expression_check, 'scoring':True}
     return display(args, reload_step=current_step, buffer=buffer_only)   
         
-
 
 baseplating_steps = ['Baseplating']
 @bp.route('/<int:id>/Baseplating/<int:step_id>', methods=('GET', 'POST')) #/<int:id>/<experiment>/
@@ -1565,7 +1631,11 @@ def set_reference_weight_to_false(mouse_id):
 @bp.route('/<int:id>/start_experiment', methods=('GET', 'POST')) #/<int:id>/<experiment>/
 @login_required
 def start_experiment(id):
-    print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
+    print("START_EXPERIMENT IN EXPERIMENTS.PY")
+    print("START_EXPERIMENT IN EXPERIMENTS.PY")
+    print("START_EXPERIMENT IN EXPERIMENTS.PY")
+    print("START_EXPERIMENT IN EXPERIMENTS.PY")
+    print("START_EXPERIMENT IN EXPERIMENTS.PY")
     mouse = get_mouse(id)
     def get_template(action):
         template_name = ""
@@ -1618,14 +1688,10 @@ def start_experiment(id):
 @bp.route('/<int:id>/select_next_procedure/<procedure_name>', methods=('GET', 'POST'))
 @login_required
 def select_next_procedure(id, procedure_name):
-    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-    print(procedure_name)
-    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
     procedure = Procedures(procedure_name, id, False)
     print(procedure.mouse_id)
     db.session.add(procedure)
     db.session.commit()
-    print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
     return redirect(url_for('experiments.start_experiment', id=id))
 
 @bp.route('/<int:id>/design_experiment', methods=('GET', 'POST'))
