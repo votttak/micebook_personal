@@ -40,9 +40,9 @@
         <div class="modal-content">
           <form id="form_id_in_modal" method="POST" action="">
 
-            <div>
+            <div id="common_block_id">
                 <label id="label_for_input" for="modal_input_id"></label>
-                <input type="text" min="" max="" name="modal_input_id" id="modal_input_id" value="something went wrong, the value hasn't been read out" size=40px>
+                <input type="text" min="" max="" step="" name="modal_input_id" id="modal_input_id" value="something went wrong, the value hasn't been read out" size=40px>
             </div>
 
             <!-- <a id="a_tag_modal" style="float: left; color: rgb(240, 14, 14);" class="action" href="">Edit</a> -->
@@ -124,6 +124,11 @@
                                                                                         font-size: 16px;">{{entry['content']}}</button>
                 {% endif %}
             {% endfor %} 
+            <!-- <div>
+                <label for="comment">Comment</label>
+                <textarea name="comment" id="comment">{{comment_value}}</textarea>
+            </div> -->
+
             </ul>
         </ul>
         {% endfor %} 
@@ -139,7 +144,8 @@
         var close_search_by_mouse_window = document.getElementById("search-by-mouse-window-close-btn-TOCHANGE");
         close_search_by_mouse_window.onclick = function() 
         {
-          search_by_mouse_window.style.display = 'none';
+            search_by_mouse_window.style.display = 'none';
+            location.reload();
         }
 
         var changeable_entries = document.getElementsByClassName("entry_changeable");
@@ -159,8 +165,14 @@
                 var meta_data = database_entry_id.split("_")
                 var entry_id = meta_data[0]
                 var input_type = meta_data[1]
-                console.log(input_type)
                 var entry_name = meta_data[2]
+                console.log("PPPPP")
+                console.log("PPPPP")
+                console.log("PPPPP")
+                console.log(input_type)
+                console.log(entry_name)
+
+
 
                 function getMonthFromString(mon){
                    return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
@@ -175,6 +187,9 @@
                    }
                    return time_number
                 }
+
+
+                
 
                 // if the type is datahour we transform the input text (data-time) to be appropriate for the parting in the input
                 if ( (input_type == "datehour") || (input_type == "datetime-local") ) {
@@ -205,10 +220,18 @@
                     }
                     textInInputField = data_time_entry_parsed
                 } else if (input_type == "bool") {
-                    input_type = "checkbox"
+
+                    // // document.getElementById("common_block_id").style.visibility = "hidden";
+                    // document.getElementById("common_block_id").style.display = 'none';
+                    input_type = "radio"
+
+
+                } else if (entry_name == "Bodyweight (grams)") {   //float type is used only for Bodyweight entry
+                    input_type = 'number'
+                    document.getElementById("modal_input_id").setAttribute('step', "0.1");
                 } else if (input_type == "range") {
                     document.getElementById("modal_input_id").setAttribute('min', 0);
-                    document.getElementById("modal_input_id").setAttribute('max', 10);    
+                    document.getElementById("modal_input_id").setAttribute('max', 10);
                 }
                 document.getElementById("label_for_input").innerHTML = entry_name;
                 document.getElementById("modal_input_id").setAttribute('value', textInInputField);

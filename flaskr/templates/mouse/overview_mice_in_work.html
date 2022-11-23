@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="POST">
+    <div>
+    <input type="text" name="virus_index_name" id="virus" required type="text" value="" placeholder="Search Virus Name">
+    <input type="submit" value="Search">
+    </div>
+  </form>
+
+
+    <div>
+    <!-- aisi: "virus" is the folder BUT in the folder there is no "add_virus" file, probably meant "new_virus"??? -->
+    <!-- <form action="{{ url_for('virus.add_virus') }}" >
+        <input class="test" type="submit" value="Add new Virus">
+    </form> -->
+    </div> 
+
+  <table id="data">
+    <thead>
+      <tr>
+        <th>Irats ID</th>
+        <th>Cage</th>
+        <th>Gender</th>
+        <th>Birthdate</th>
+        <th>Status</th>
+        <th>???</th>
+        <th>???</th>
+        <th>???</th>
+        <th>???</th>
+        <th>???</th>
+        <th>???</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mouse in working_mice %}
+        <tr>
+          <td>{{ mouse.irats_id }}</td>
+          <td>{{ mouse.cage }}</td>
+          <td>{{ mouse.gender }}</td>
+          <td>{{ mouse.birthdate }}</td>
+          <td>{{ mouse.status }}</td>
+          <td>???</td>
+          <td>{{ mouse.status }}</td>
+          <td>{{ mouse.status }}</td>
+          <td>{{ mouse.status }}</td>
+          <td>{{ mouse.status }}</td>
+          <td>{{ mouse.status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+
+
+
+    <script>
+      $(document).ready(function () {
+        var HeightDiv = $("div").height();
+        var HeightTable = $("table").height();
+        if (HeightTable > HeightDiv) {
+            var FontSizeTable = parseInt($("table").css("font-size"), 10);
+            while (HeightTable > HeightDiv && FontSizeTable > 10) {
+                FontSizeTable--;
+                $("table").css("font-size", FontSizeTable);
+                HeightTable = $("table").height();
+            }
+        }
+      });
+    </script>
+
+{% endblock %}

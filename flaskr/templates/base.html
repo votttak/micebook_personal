@@ -23,7 +23,13 @@
   <h1>Micebook</h1>
   {% if g.user.admin_rights %}
 
-    <form action="{{ url_for('mouse.full_index') }}" >
+    
+  
+  <form action="{{ url_for('mouse.overview') }}" >
+    <input class="test" type="submit" value="Overview">
+  </form>
+
+  <form action="{{ url_for('mouse.full_index') }}" >
       <input class="test" type="submit" value="All Mice">
     </form> 
 

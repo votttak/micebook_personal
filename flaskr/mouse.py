@@ -156,12 +156,6 @@ def index(show_all=True):
     return render_template('mouse/index.html', todo_mice=todo_mice_sorted, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
 
 
-
-
-
-
-
-
 @bp.route('/cage/<int:cage_number>', methods=('GET', 'POST'))
 @login_required
 # def index(show_all=False):
@@ -253,13 +247,6 @@ def mice_in_cage(cage_number, show_all=True):
     print("EEEEEEEEEEEEEEEEEEE")
 
     return render_template('mouse/index.html', todo_mice=todo_mice_sorted, licenced_mice=licenced_mice, all_mice=all_mice, euthanized_mice=euthanized_mice, now=datetime.today().date(), unique_room_ids=unique_room_ids)
-
-
-
-
-
-
-
 
 
 @bp.route("/full_index", methods=('GET', 'POST'))
@@ -442,6 +429,52 @@ def get_entry(id):
     if entry is None:
         abort(404, "Entry id {0} doesn't exist.".format(id))
     return entry
+
+
+
+
+
+## geting to the list of mices in work (also euthanized) ## 
+@bp.route('/mice_overview', methods=('GET', 'POST'))
+@login_required
+def overview():
+    print("OVERVIEW")
+    print("OVERVIEW")
+    print("OVERVIEW")
+    print("OVERVIEW")
+    print("OVERVIEW")
+    
+    if request.method=='POST':
+        if 'virus_index_name' in request.form:
+            virus_name = request.form['virus_index_name']
+            virus_list = Viruses.query.filter(Viruses.name==virus_name).order_by(asc(Viruses.id)).all()
+    else:
+        virus_list = Viruses.query.order_by(asc(Viruses.id)).all()
+        steps = Steps.query.filter().all()
+
+        working_mice_ids = set()
+        for s in steps:
+            working_mice_ids.add(s.mouse_id)
+        
+        working_mouse_from_mice_db = []
+        for mouse_id in working_mice_ids:
+            print(mouse_id)
+            working_mouse_from_mice_db.append(Mice.query.filter(Mice.id==mouse_id).first())
+        
+        print(len(working_mouse_from_mice_db))
+        print(working_mouse_from_mice_db)
+        
+        print("OOOOOOO")
+        print("OOOOOOO")
+        print("OOOOOOO")
+    return render_template('mouse/overview_mice_in_work.html', working_mice=working_mouse_from_mice_db)
+
+
+
+
+
+
+
 
 
 
